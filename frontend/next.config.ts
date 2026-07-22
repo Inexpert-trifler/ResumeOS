@@ -15,6 +15,8 @@ const nextConfig: NextConfig = {
       "@dnd-kit/sortable",
     ],
   },
+  // Sprint 2 placeholder: serverExternalPackages for future AI/PDF libs
+  // serverExternalPackages: [],
 };
 
 export default nextConfig;

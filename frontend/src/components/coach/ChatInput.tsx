@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { Mic, Paperclip, Send, Smile } from "lucide-react";
 import { Button } from "@/components/ui/button";
 

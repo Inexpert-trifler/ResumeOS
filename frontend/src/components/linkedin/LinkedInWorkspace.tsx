@@ -3,9 +3,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { FadeUp } from "@/animations/FadeUp";
-import { StaggerContainer, StaggerItem } from "@/animations/StaggerAnimation";
-import { Link2, Sparkles, TrendingUp, User, FileText, Briefcase, Star, CheckCircle2, Zap, AlertCircle } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Link2, Sparkles, TrendingUp, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const PROFILE_SECTIONS = [

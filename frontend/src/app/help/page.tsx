@@ -1,5 +1,5 @@
 import { PageTransition } from "@/components/shared/PageTransition";
-import { HelpCircle, BookOpen, MessageCircle, Mail, ExternalLink } from "lucide-react";
+import { HelpCircle, BookOpen, MessageCircle, Mail } from "lucide-react";
 
 const HELP_ITEMS = [
   { icon: BookOpen, title: "Documentation", desc: "Step-by-step guides for every feature", href: "#" },
@@ -22,7 +22,7 @@ export default function HelpPage() {
           <h1 className="text-2xl font-bold flex items-center gap-3">
             <HelpCircle className="w-6 h-6 text-accent" /> Help & Support
           </h1>
-          <p className="text-muted-foreground text-sm mt-1">We're here to help you succeed</p>
+          <p className="text-muted-foreground text-sm mt-1">We&apos;re here to help you succeed</p>
         </div>
         <div className="grid grid-cols-3 gap-4">
           {HELP_ITEMS.map((item, i) => {

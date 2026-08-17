@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { ArrowLeft, GitBranch, TrendingUp, Eye, Users, Star, Sparkles } from "lucide-react";
+import { ArrowLeft, TrendingUp, Eye, Users, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const METRICS = [

@@ -18,9 +18,10 @@ const ROLES = [
 interface Step02Props {
   state: BuilderState;
   update: (partial: Partial<BuilderState>) => void;
+  validationError?: string;
 }
 
-export function Step02_TargetRole({ state, update }: Step02Props) {
+export function Step02_TargetRole({ state, update, validationError }: Step02Props) {
   const [query, setQuery] = useState("");
 
   const filtered = ROLES.filter(r => r.toLowerCase().includes(query.toLowerCase()));
@@ -68,7 +69,7 @@ export function Step02_TargetRole({ state, update }: Step02Props) {
             onClick={() => { update({ targetRole: query }); setQuery(""); }}
             className="px-4 py-2.5 rounded-xl text-sm font-medium border border-dashed border-accent/50 text-accent hover:bg-accent/10"
           >
-            + Use "{query}"
+            + Use {query}
           </motion.button>
         )}
       </div>
@@ -82,6 +83,12 @@ export function Step02_TargetRole({ state, update }: Step02Props) {
           <div className="w-2 h-2 bg-accent rounded-full" />
           <span className="text-sm font-medium">Selected: <strong>{state.targetRole}</strong></span>
         </motion.div>
+      )}
+
+      {validationError && (
+        <p className="mt-4 text-sm text-destructive" aria-live="polite">
+          {validationError}
+        </p>
       )}
     </StepWrapper>
   );

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useLayoutEffect } from "react";
 import { ThemeToggle } from "@/components/shared/ThemeToggle";
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/shared/Container";
@@ -10,6 +10,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { Menu, Sparkles, X, LayoutDashboard, Layers, GraduationCap, PenTool, Target, Sparkles as CoachIcon, Briefcase, FileText, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
+import { UserButton, useUser } from "@clerk/nextjs";
 
 const NAV_LINKS = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -23,6 +24,7 @@ const NAV_LINKS = [
 
 export function Navbar() {
   const pathname = usePathname();
+  const { isSignedIn } = useUser();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -32,8 +34,9 @@ export function Navbar() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // Close mobile menu on route change
-  useEffect(() => {
+  // Close mobile menu on route change — useLayoutEffect avoids visible flicker
+  useLayoutEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMobileOpen(false);
   }, [pathname]);
 
@@ -99,6 +102,18 @@ export function Navbar() {
                 Build Resume
               </Button>
             </Link>
+
+            {!isSignedIn && <>
+              <Link href="/sign-in" className="hidden sm:block">
+                <Button variant="ghost" size="sm" className="rounded-full px-3 h-8 text-xs">Sign in</Button>
+              </Link>
+              <Link href="/sign-up" className="hidden sm:block">
+                <Button size="sm" className="rounded-full px-3 h-8 text-xs">Sign up</Button>
+              </Link>
+            </>}
+            {isSignedIn && (
+              <UserButton userProfileUrl="/user-profile" />
+            )}
 
             {/* Mobile Hamburger */}
             <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>

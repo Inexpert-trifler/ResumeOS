@@ -48,7 +48,7 @@ export function FundamentalsSection() {
               <div className="flex gap-3 items-start">
                 <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0 mt-0.5" />
                 <div>
-                  <p className="font-medium">Standard Margins (0.5" to 1")</p>
+                  <p className="font-medium">Standard Margins (0.5&quot; to 1&quot;)</p>
                   <p className="text-sm text-muted-foreground">Give your text room to breathe. Use consistent line spacing (1.15 is ideal).</p>
                 </div>
               </div>
@@ -56,7 +56,7 @@ export function FundamentalsSection() {
                 <XCircle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
                 <div>
                   <p className="font-medium">Cramming Text</p>
-                  <p className="text-sm text-muted-foreground">Reducing margins below 0.5" to fit more text creates a "wall of text" that recruiters will skip entirely.</p>
+                  <p className="text-sm text-muted-foreground">Reducing margins below 0.5&quot; to fit more text creates a &quot;wall of text&quot; that recruiters will skip entirely.</p>
                 </div>
               </div>
             </div>
@@ -78,7 +78,7 @@ export function FundamentalsSection() {
                 <XCircle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
                 <div>
                   <p className="font-medium">Graphics, Photos & Skill Bars</p>
-                  <p className="text-sm text-muted-foreground">In US/Tech/Corporate, NEVER include a headshot. Do not use 5-star skill bars—they are subjective and break ATS.</p>
+                  <p className="text-sm text-muted-foreground">In US/Tech/Corporate, NEVER include a headshot. Do not use 5-star skill bars&mdash;they are subjective and break ATS.</p>
                 </div>
               </div>
             </div>
@@ -100,7 +100,7 @@ export function FundamentalsSection() {
                 <XCircle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
                 <div>
                   <p className="font-medium">Word Documents (.docx)</p>
-                  <p className="text-sm text-muted-foreground">Only submit a Word document if the job application explicitly forces you to. Formatting can break on the recruiter's machine.</p>
+                  <p className="text-sm text-muted-foreground">Only submit a Word document if the job application explicitly forces you to. Formatting can break on the recruiter&apos;s machine.</p>
                 </div>
               </div>
             </div>

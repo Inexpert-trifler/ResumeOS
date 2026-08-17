@@ -1,12 +1,12 @@
 "use client";
 
 import { useStudio } from "./StudioContext";
-import { motion, AnimatePresence, Reorder } from "framer-motion";
+import { Reorder } from "framer-motion";
 import { cn } from "@/lib/utils";
 import {
   User, FileText, Briefcase, GraduationCap, Code2, FolderOpen,
-  Trophy, Award, Users, Globe, Heart, Plus, Eye, EyeOff,
-  GripVertical, ChevronRight, Settings2
+  Trophy, Award, Users, Globe, Heart, Eye, EyeOff,
+  GripVertical, ChevronRight
 } from "lucide-react";
 import { ResumeSection } from '@/types';
 

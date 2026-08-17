@@ -30,11 +30,11 @@ export function LinkedInPanel() {
             <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{r.label}</p>
             <div className="p-3 rounded-xl border border-red-500/20 bg-red-500/5">
               <p className="text-[10px] text-red-500 font-semibold uppercase mb-1">Before</p>
-              <p className="text-xs text-foreground/70 italic">"{r.before}"</p>
+              <p className="text-xs text-foreground/70 italic">{`"${r.before}"`}</p>
             </div>
             <div className="p-3 rounded-xl border border-green-500/20 bg-green-500/5">
               <p className="text-[10px] text-green-500 font-semibold uppercase mb-1">After</p>
-              <p className="text-xs text-foreground font-medium">"{r.after}"</p>
+              <p className="text-xs text-foreground font-medium">{`"${r.after}"`}</p>
             </div>
           </motion.div>
         ))}

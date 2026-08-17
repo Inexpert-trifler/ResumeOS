@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Sparkles, TrendingUp, CheckCircle2, Clock } from "lucide-react";
+import { Sparkles, CheckCircle2, Clock } from "lucide-react";
 
 const STATS = [
   { label: "Questions Bank", value: "2,400+" },

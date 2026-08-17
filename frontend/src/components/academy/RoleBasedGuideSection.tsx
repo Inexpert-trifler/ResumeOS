@@ -12,7 +12,15 @@ const ROLES = [
   { id: "marketing", label: "Marketing", icon: Megaphone },
 ];
 
-const ROLE_DATA: Record<string, any> = {
+interface RoleGuide {
+  title: string;
+  skills: string[];
+  order: string;
+  mistakes: string[];
+  keywords: string[];
+}
+
+const ROLE_DATA: Record<string, RoleGuide> = {
   swe: {
     title: "Software Engineer Resume Guide",
     skills: ["Data Structures & Algorithms", "System Design", "Cloud (AWS/GCP)", "CI/CD", "Testing"],
@@ -50,7 +58,7 @@ export function RoleBasedGuideSection() {
           Tailored For Your Industry
         </h2>
         <p className="text-lg text-muted-foreground leading-relaxed mb-12 max-w-3xl">
-          A software engineer's resume should look drastically different from a graphic designer's. Select your role to see specific guidelines.
+          A software engineer&apos;s resume should look drastically different from a graphic designer&apos;s. Select your role to see specific guidelines.
         </p>
       </FadeUp>
 

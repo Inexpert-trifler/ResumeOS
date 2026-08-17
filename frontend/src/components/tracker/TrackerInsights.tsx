@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { INSIGHTS_DATA } from "@/data/mock-tracker";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 

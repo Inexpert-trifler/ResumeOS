@@ -22,9 +22,10 @@ const GOALS: { value: CareerGoal; label: string; icon: React.ElementType; descri
 interface Step01Props {
   state: BuilderState;
   update: (partial: Partial<BuilderState>) => void;
+  validationError?: string;
 }
 
-export function Step01_CareerGoal({ state, update }: Step01Props) {
+export function Step01_CareerGoal({ state, update, validationError }: Step01Props) {
   return (
     <StepWrapper
       badge="Step 1"
@@ -70,6 +71,12 @@ export function Step01_CareerGoal({ state, update }: Step01Props) {
           );
         })}
       </div>
+
+      {validationError && (
+        <p className="mt-4 text-sm text-destructive" aria-live="polite">
+          {validationError}
+        </p>
+      )}
     </StepWrapper>
   );
 }

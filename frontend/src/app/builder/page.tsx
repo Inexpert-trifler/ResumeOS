@@ -7,11 +7,24 @@ import { BuilderState, INITIAL_STATE, STEP_LABELS } from "@/types";
 import { BuilderProgressBar } from "@/components/builder/BuilderProgressBar";
 import { BuilderSidebar } from "@/components/builder/BuilderSidebar";
 import { BuilderNavigation } from "@/components/builder/BuilderNavigation";
+import { DashboardTopNav } from "@/components/dashboard/TopNav";
 import { MobileStepsDrawer } from "@/components/builder/MobileStepsDrawer";
 import { LayoutList } from "lucide-react";
 import { BuilderWelcomeScreen } from "@/components/builder/BuilderWelcomeScreen";
-import { builderToResume, readResumeDraft, saveResumeDraft } from "@/lib/resume-draft";
-import { DEFAULT_SECTIONS, DEFAULT_SETTINGS } from "@/data/mock-resume";
+import {
+  createBuilderDraft,
+  hydrateBuilderState,
+  readResumeDraft,
+  useResumeDraftSnapshot,
+  saveResumeDraft,
+} from "@/lib/resume-draft";
+import {
+  getBuilderStepValidationErrors,
+  getFirstInvalidBuilderStep,
+  isBuilderStepValid,
+  isBuilderReadyForStudio,
+} from "@/lib/builder-validation";
+import { CLOUD_DRAFT_RESTORED_EVENT } from "@/providers/cloud-sync-provider";
 
 import { Step01_CareerGoal } from "@/components/builder/Step01_CareerGoal";
 import { Step02_TargetRole } from "@/components/builder/Step02_TargetRole";
@@ -32,12 +45,37 @@ const OPTIONAL_STEPS = new Set([3, 7, 10, 11, 12, 13, 14]);
 
 export default function BuilderPage() {
   const router = useRouter();
+  const draft = useResumeDraftSnapshot();
   const [state, setState] = useState<BuilderState>(INITIAL_STATE);
   const [autoSaved, setAutoSaved] = useState<Date | null>(null);
   const [showMobileSteps, setShowMobileSteps] = useState(false);
+  // Always start as false (for SSR/client consistency), then update after mount
   const [started, setStarted] = useState(false);
-  const [hydrated, setHydrated] = useState(false);
   const skipNextSave = useRef(true);
+
+  // After mount: restore from localStorage if a draft exists
+  useEffect(() => {
+    const existing = readResumeDraft();
+    if (existing?.builder) {
+      skipNextSave.current = true;
+      setState(hydrateBuilderState(existing.builder));
+      setStarted(true);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    const restoreCloudDraft = () => {
+      const restored = readResumeDraft();
+      if (!restored?.builder) return;
+      skipNextSave.current = true;
+      setState(hydrateBuilderState(restored.builder));
+      setStarted(true);
+    };
+
+    window.addEventListener(CLOUD_DRAFT_RESTORED_EVENT, restoreCloudDraft);
+    return () => window.removeEventListener(CLOUD_DRAFT_RESTORED_EVENT, restoreCloudDraft);
+  }, []);
 
   const update = useCallback((partial: Partial<BuilderState>) => {
     setState((prev) => ({ ...prev, ...partial }));
@@ -54,16 +92,6 @@ export default function BuilderPage() {
   const prevStep = useCallback(() => goToStep(state.currentStep - 1), [state.currentStep, goToStep]);
 
   useEffect(() => {
-    const draft = readResumeDraft();
-    if (draft?.builder) {
-      setState({ ...INITIAL_STATE, ...draft.builder, lastSaved: draft.builder.lastSaved ? new Date(draft.builder.lastSaved) : null });
-      setStarted(true);
-    }
-    setHydrated(true);
-  }, []);
-
-  useEffect(() => {
-    if (!hydrated) return;
     if (skipNextSave.current) {
       skipNextSave.current = false;
       return;
@@ -71,59 +99,67 @@ export default function BuilderPage() {
 
     const timer = setTimeout(() => {
       const savedAt = new Date();
-      const builder = { ...state, lastSaved: savedAt };
       const existing = readResumeDraft();
-      saveResumeDraft({
-        builder,
-        resume: builderToResume(builder),
-        sections: existing?.sections ?? DEFAULT_SECTIONS,
-        settings: existing?.settings ?? DEFAULT_SETTINGS,
-        updatedAt: savedAt.toISOString(),
-      });
+      saveResumeDraft(createBuilderDraft(state, existing, savedAt));
       setAutoSaved(savedAt);
     }, 500);
     return () => clearTimeout(timer);
-  }, [hydrated, state]);
+  }, [state]);
+
+  const currentStepErrors = getBuilderStepValidationErrors(state.currentStep, state);
+  const currentStepIsValid = isBuilderStepValid(state.currentStep, state);
+  const canGenerateResume = isBuilderReadyForStudio(state);
+  const firstInvalidStep = getFirstInvalidBuilderStep(state);
 
   const openStudio = useCallback(() => {
+    if (!canGenerateResume) {
+      if (firstInvalidStep !== null) {
+        goToStep(firstInvalidStep);
+      }
+      return;
+    }
+
     const savedAt = new Date();
-    const builder = { ...state, lastSaved: savedAt };
     const existing = readResumeDraft();
-    saveResumeDraft({
-      builder,
-      resume: builderToResume(builder),
-      sections: existing?.sections ?? DEFAULT_SECTIONS,
-      settings: existing?.settings ?? DEFAULT_SETTINGS,
-      updatedAt: savedAt.toISOString(),
-    });
+    saveResumeDraft(createBuilderDraft(state, existing, savedAt));
     router.push("/studio");
-  }, [router, state]);
+  }, [canGenerateResume, firstInvalidStep, goToStep, router, state]);
 
   const renderStep = () => {
     const props = { state, update };
     switch (state.currentStep) {
-      case 0:  return <Step01_CareerGoal {...props} />;
-      case 1:  return <Step02_TargetRole {...props} />;
+      case 0:  return <Step01_CareerGoal {...props} validationError={currentStepErrors.careerGoal} />;
+      case 1:  return <Step02_TargetRole {...props} validationError={currentStepErrors.targetRole} />;
       case 2:  return <Step03_Experience {...props} />;
       case 3:  return <Step04_TargetCompany {...props} />;
-      case 4:  return <Step05_PersonalInfo {...props} />;
+      case 4:  return <Step05_PersonalInfo {...props} validationErrors={currentStepErrors.personalInfo} />;
       case 5:  return <Step06_Summary {...props} />;
-      case 6:  return <Step07_Skills {...props} />;
-      case 7:  return <Step08_Projects {...props} />;
+      case 6:  return <Step07_Skills {...props} validationError={currentStepErrors.skills} />;
+      case 7:  return <Step08_Projects {...props} validationError={currentStepErrors.projects} />;
       case 8:  return <Step09_WorkExperience {...props} />;
-      case 9:  return <Step10_Education {...props} />;
+      case 9:  return <Step10_Education {...props} validationError={currentStepErrors.education} />;
       case 10: return <Step11_Achievements {...props} />;
       case 11: return <Step12_Certificates {...props} />;
       case 12: return <Step13_Leadership {...props} />;
       case 13: return <Step14_Languages {...props} />;
       case 14: return <Step15_Interests {...props} />;
-      case 15: return <Step16_Review state={state} onGoToStep={goToStep} onGenerate={openStudio} />;
+      case 15: return (
+        <Step16_Review
+          state={state}
+          onGoToStep={goToStep}
+          onGenerate={openStudio}
+          canGenerate={canGenerateResume}
+        />
+      );
       default: return null;
     }
   };
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+
+      {/* Top Nav — always rendered to avoid hydration mismatch */}
+      <DashboardTopNav />
 
       {/* Welcome screen — shown before builder starts */}
       <AnimatePresence mode="wait">
@@ -136,7 +172,7 @@ export default function BuilderPage() {
 
       {/* Builder shell — shown after welcome */}
       {started && (
-        <>
+        <div className="flex-1 flex flex-col">
           {/* Top Progress Bar */}
           <BuilderProgressBar
             currentStep={state.currentStep}
@@ -162,6 +198,7 @@ export default function BuilderPage() {
                 onPrev={prevStep}
                 onSkip={nextStep}
                 isOptional={OPTIONAL_STEPS.has(state.currentStep)}
+                isNextDisabled={state.currentStep === TOTAL_STEPS - 1 ? !canGenerateResume : !currentStepIsValid}
               />
             </main>
 
@@ -197,7 +234,7 @@ export default function BuilderPage() {
               </>
             )}
           </AnimatePresence>
-        </>
+        </div>
       )}
     </div>
   );

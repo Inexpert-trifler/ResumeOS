@@ -50,7 +50,7 @@ export function TestimonialsSection() {
                 {[...Array(5)].map((_, i) => <Star key={i} className="w-4 h-4 fill-current" />)}
               </div>
               <p className="text-foreground/90 text-lg leading-relaxed flex-grow">
-                "{testimonial.text}"
+                {`"${testimonial.text}"`}
               </p>
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center font-bold text-muted-foreground">

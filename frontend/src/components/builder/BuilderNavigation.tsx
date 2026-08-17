@@ -11,10 +11,11 @@ interface BuilderNavigationProps {
   onPrev: () => void;
   onSkip?: () => void;
   isOptional?: boolean;
+  isNextDisabled?: boolean;
 }
 
 export function BuilderNavigation({
-  currentStep, totalSteps, onNext, onPrev, onSkip, isOptional
+  currentStep, totalSteps, onNext, onPrev, onSkip, isOptional, isNextDisabled
 }: BuilderNavigationProps) {
   const isFirst = currentStep === 0;
   const isLast = currentStep === totalSteps - 1;
@@ -40,6 +41,7 @@ export function BuilderNavigation({
 
         <Button
           onClick={onNext}
+          disabled={isNextDisabled}
           className="rounded-full shadow-lg px-8 gap-2 h-11"
         >
           {isLast ? "Complete ✓" : (

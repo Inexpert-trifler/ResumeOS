@@ -21,6 +21,7 @@ export function HeroSection() {
 
   useEffect(() => {
     // Generate random values only on the client to avoid SSR/CSR mismatch
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setParticles(
       Array.from({ length: 5 }, () => ({
         x: Math.random() * window.innerWidth,

@@ -1,6 +1,5 @@
 "use client";
 
-import { Container } from "@/components/shared/Container";
 import { FadeUp } from "@/animations/FadeUp";
 import {
   Accordion,

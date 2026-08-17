@@ -4,6 +4,8 @@ import "./globals.css";
 import { ThemeProvider } from "@/providers/theme-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { SmoothScrollProvider } from "@/providers/smooth-scroll-provider";
+import { ClerkProvider } from "@clerk/nextjs";
+import { CloudSyncProvider } from "@/providers/cloud-sync-provider";
 
 const inter = Inter({
   variable: "--font-sans",
@@ -28,16 +30,20 @@ export default function RootLayout({
       className={`${inter.variable} font-sans h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-background text-foreground">
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <SmoothScrollProvider>
-            <TooltipProvider>{children}</TooltipProvider>
-          </SmoothScrollProvider>
-        </ThemeProvider>
+        <ClerkProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <CloudSyncProvider>
+              <SmoothScrollProvider>
+                <TooltipProvider>{children}</TooltipProvider>
+              </SmoothScrollProvider>
+            </CloudSyncProvider>
+          </ThemeProvider>
+        </ClerkProvider>
       </body>
     </html>
   );

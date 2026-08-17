@@ -38,10 +38,9 @@ export function CoachSidebar() {
 
         {/* Steps Stepper */}
         <div className="space-y-6 relative before:absolute before:inset-0 before:ml-[11px] before:-translate-x-px before:h-full before:w-px before:bg-gradient-to-b before:from-border/80 before:to-transparent">
-          {PROGRESS_STEPS.map((step, i) => {
+          {PROGRESS_STEPS.map((step) => {
             const isCompleted = step.status === "completed";
             const isActive = step.status === "active";
-            const isUpcoming = step.status === "upcoming";
 
             return (
               <div key={step.name} className="relative flex items-center group">

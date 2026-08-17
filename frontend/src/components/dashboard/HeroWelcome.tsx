@@ -4,24 +4,15 @@ import { motion } from "framer-motion";
 import { ArrowRight, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { useEffect, useState } from "react";
-import { readResumeDraft, resumeCompletion } from "@/lib/resume-draft";
+import { resumeCompletion, useResumeDraftSnapshot } from "@/lib/resume-draft";
 
 export function DashboardHeroWelcome() {
-  const [name, setName] = useState("there");
-  const [completion, setCompletion] = useState<number | null>(null);
-  const [hasResume, setHasResume] = useState(false);
-
-  useEffect(() => {
-    const draft = readResumeDraft();
-    if (draft?.builder) {
-      const p = draft.builder.personalInfo;
-      const firstName = p?.firstName?.trim();
-      if (firstName) setName(firstName);
-      setCompletion(resumeCompletion(draft.builder));
-      setHasResume(true);
-    }
-  }, []);
+  const draft = useResumeDraftSnapshot();
+  const hasResume = Boolean(draft?.builder);
+  const completion = draft?.builder ? resumeCompletion(draft.builder) : null;
+  const personalInfo = draft?.builder?.personalInfo;
+  const builderName = [personalInfo?.firstName?.trim(), personalInfo?.lastName?.trim()].filter(Boolean).join(" ");
+  const name = builderName || draft?.resume?.header.name?.trim() || "there";
 
   return (
     <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-accent/20 via-accent/5 to-background border border-accent/10 p-8 md:p-10 shadow-sm">
@@ -67,7 +58,7 @@ export function DashboardHeroWelcome() {
         >
           <Link href={hasResume ? "/studio" : "/builder"}>
             <Button size="lg" className="rounded-full shadow-lg shadow-accent/20 h-12 px-8">
-              {hasResume ? "Continue Editing" : "Build My Resume"}
+              {hasResume ? "Continue Resume" : "Build My Resume"}
               <ArrowRight className="ml-2 w-4 h-4" />
             </Button>
           </Link>

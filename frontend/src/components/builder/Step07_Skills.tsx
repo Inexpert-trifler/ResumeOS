@@ -15,14 +15,13 @@ const SUGGESTED: Record<string, string[]> = {
   "Soft Skills": ["Leadership", "Communication", "Problem Solving", "Agile"],
 };
 
-const LEVELS: Skill["level"][] = ["Beginner", "Intermediate", "Advanced", "Expert"];
-
 interface Step07Props {
   state: BuilderState;
   update: (partial: Partial<BuilderState>) => void;
+  validationError?: string;
 }
 
-export function Step07_Skills({ state, update }: Step07Props) {
+export function Step07_Skills({ state, update, validationError }: Step07Props) {
   const [input, setInput] = useState("");
 
   const addSkill = (name: string) => {
@@ -83,6 +82,12 @@ export function Step07_Skills({ state, update }: Step07Props) {
         <p className="text-xs text-muted-foreground -mt-4">
           {state.skills.length} skill{state.skills.length !== 1 ? "s" : ""} added. Duplicate detection is active.
         </p>
+
+        {validationError && (
+          <p className="text-sm text-destructive" aria-live="polite">
+            {validationError}
+          </p>
+        )}
 
         {/* Suggestions by category */}
         <div className="space-y-4">

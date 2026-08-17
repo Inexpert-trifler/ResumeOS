@@ -1,23 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { FileText, Target, Award, Download, TrendingUp } from "lucide-react";
-import { readResumeDraft, resumeCompletion } from "@/lib/resume-draft";
+import { resumeCompletion, useResumeDraftSnapshot } from "@/lib/resume-draft";
 import { DASHBOARD_STATS, RESUME_HEALTH_DATA } from "@/data/mock-dashboard";
 
 export function DashboardResumeStats() {
-  const [completion, setCompletion] = useState(0);
-  const [hasData, setHasData] = useState(false);
-
-  useEffect(() => {
-    const draft = readResumeDraft();
-    if (draft?.builder) {
-      setCompletion(resumeCompletion(draft.builder));
-      setHasData(true);
-    }
-  }, []);
+  const draft = useResumeDraftSnapshot();
+  const hasData = Boolean(draft?.builder);
+  const completion = draft?.builder ? resumeCompletion(draft.builder) : 0;
 
   const score = hasData ? completion : DASHBOARD_STATS.avgScore;
 

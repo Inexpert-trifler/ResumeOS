@@ -1,10 +1,12 @@
 "use client";
 
-import { KEYWORDS } from "@/data/mock-analyzer";
 import { Check, X, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
+import { useResumeAnalysis } from "@/lib/resume-analysis";
 
 export function AnalyzerKeywordAnalysis() {
+  const analysis = useResumeAnalysis();
+
   return (
     <section className="mb-12">
       <h2 className="text-2xl font-bold mb-6">Keyword Analysis</h2>
@@ -21,7 +23,7 @@ export function AnalyzerKeywordAnalysis() {
             <h3 className="font-semibold">Matched Keywords</h3>
           </div>
           <div className="flex flex-wrap gap-2">
-            {KEYWORDS.matched.map((kw) => (
+            {analysis.keywordCoverage.matched.map((kw) => (
               <span key={kw} className="px-3 py-1 bg-green-500/10 text-green-600 dark:text-green-400 text-sm font-medium rounded-full border border-green-500/20">
                 {kw}
               </span>
@@ -41,7 +43,7 @@ export function AnalyzerKeywordAnalysis() {
             <h3 className="font-semibold">Missing Hard Skills</h3>
           </div>
           <div className="flex flex-wrap gap-2">
-            {KEYWORDS.missing.map((kw) => (
+            {analysis.keywordCoverage.missing.map((kw) => (
               <span key={kw} className="px-3 py-1 bg-red-500/10 text-red-600 dark:text-red-400 text-sm font-medium rounded-full border border-red-500/20">
                 {kw}
               </span>
@@ -61,7 +63,7 @@ export function AnalyzerKeywordAnalysis() {
             <h3 className="font-semibold">Recommended</h3>
           </div>
           <div className="flex flex-wrap gap-2">
-            {KEYWORDS.recommended.map((kw) => (
+            {analysis.keywordCoverage.recommended.map((kw) => (
               <span key={kw} className="px-3 py-1 bg-blue-500/10 text-blue-600 dark:text-blue-400 text-sm font-medium rounded-full border border-blue-500/20">
                 {kw}
               </span>

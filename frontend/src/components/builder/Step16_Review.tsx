@@ -17,9 +17,10 @@ interface Step16Props {
   state: BuilderState;
   onGoToStep: (step: number) => void;
   onGenerate: () => void;
+  canGenerate?: boolean;
 }
 
-export function Step16_Review({ state, onGoToStep, onGenerate }: Step16Props) {
+export function Step16_Review({ state, onGoToStep, onGenerate, canGenerate = true }: Step16Props) {
   const p = state.personalInfo;
 
   const sections: ReviewSection[] = [
@@ -133,11 +134,13 @@ export function Step16_Review({ state, onGoToStep, onGenerate }: Step16Props) {
         ))}
 
         <div className="pt-4">
-          <Button onClick={onGenerate} className="w-full h-14 rounded-2xl text-base font-bold shadow-lg gap-3">
+          <Button onClick={onGenerate} disabled={!canGenerate} className="w-full h-14 rounded-2xl text-base font-bold shadow-lg gap-3">
             🚀 Generate My Resume
           </Button>
           <p className="text-center text-xs text-muted-foreground mt-3">
-            This will take you to the preview page. You can always come back and edit.
+            {canGenerate
+              ? "This will take you to the preview page. You can always come back and edit."
+              : "Complete the required sections before generating your resume."}
           </p>
         </div>
       </div>

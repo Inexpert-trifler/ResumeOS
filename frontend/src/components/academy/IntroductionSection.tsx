@@ -15,7 +15,7 @@ export function IntroductionSection() {
           The Anatomy of a Winning Resume
         </h2>
         <p className="text-lg text-muted-foreground leading-relaxed mb-12 max-w-3xl">
-          Your resume is not an autobiography. It is a highly targeted marketing document designed to do exactly one thing: get you an interview. Let's break down how recruiters actually read them.
+          Your resume is not an autobiography. It is a highly targeted marketing document designed to do exactly one thing: get you an interview. Let&apos;s break down how recruiters actually read them.
         </p>
       </FadeUp>
 
@@ -54,7 +54,7 @@ export function IntroductionSection() {
             </div>
             <h3 className="font-semibold text-lg mb-2">The Ultimate Goal</h3>
             <p className="text-muted-foreground text-sm leading-relaxed">
-              Your resume's only job is to prove you can solve the employer's problems. It should scream "I have done exactly what you need" within the first glance.
+              Your resume&apos;s only job is to prove you can solve the employer&apos;s problems. It should scream &quot;I have done exactly what you need&quot; within the first glance.
             </p>
           </div>
         </FadeUp>

@@ -97,9 +97,9 @@ export function ATSVisualizationSection() {
               <p>SKILLS_BLOCK_START</p>
               <p>React Node.js Python</p>
               <p>SKILLS_BLOCK_END</p>
-              <p className="text-red-400">ERROR_PARSING_TABLE: "CompanyRoleTech CorpDeveloper"</p>
+              <p className="text-red-400">{`ERROR_PARSING_TABLE: "CompanyRoleTech CorpDeveloper"`}</p>
               <p className="text-muted-foreground mt-4 pt-4 border-t border-zinc-800 border-dashed">
-                // Notice how the table data merged together because ATS reads left-to-right, top-to-bottom, ignoring visual columns.
+                {/* Notice how the table data merged together because ATS reads left-to-right, top-to-bottom, ignoring visual columns. */}
               </p>
             </div>
           </div>

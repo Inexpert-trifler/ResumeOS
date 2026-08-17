@@ -2,19 +2,21 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { SECTION_ANALYSIS } from "@/data/mock-analyzer";
 import { ChevronDown, Plus, Minus } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useResumeAnalysis } from "@/lib/resume-analysis";
 
 export function AnalyzerSectionAnalysis() {
-  const [openSection, setOpenSection] = useState<string | null>(SECTION_ANALYSIS[0].id);
+  const analysis = useResumeAnalysis();
+  const firstSectionId = analysis.sectionAnalysis[0]?.id ?? null;
+  const [openSection, setOpenSection] = useState<string | null>(firstSectionId);
 
   return (
     <section className="mb-12">
       <h2 className="text-2xl font-bold mb-6">Section by Section</h2>
       <div className="space-y-4">
-        {SECTION_ANALYSIS.map((section) => {
-          const isOpen = openSection === section.id;
+        {analysis.sectionAnalysis.map((section) => {
+          const isOpen = (openSection ?? firstSectionId) === section.id;
 
           return (
             <div key={section.id} className="rounded-2xl border border-border/50 bg-card overflow-hidden transition-colors hover:border-accent/30">

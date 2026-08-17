@@ -4,7 +4,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { FadeUp } from "@/animations/FadeUp";
 import { StaggerContainer, StaggerItem } from "@/animations/StaggerAnimation";
-import { Map, Sparkles, Target, TrendingUp, BookOpen, Code2, CheckCircle2, Clock, Zap, ArrowRight } from "lucide-react";
+import { Map, Sparkles, Target, TrendingUp, Code2, CheckCircle2, Clock, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const CURRENT_LEVEL = { title: "Mid-Level Software Engineer", yoe: "3 years", score: 62 };

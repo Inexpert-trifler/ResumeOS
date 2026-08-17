@@ -1,7 +1,7 @@
 "use client";
 
-import { ResumeData, StudioSettings } from '@/types';
-import { Mail, Phone, MapPin, Globe, Code2 as Github, Link2 as Linkedin } from "lucide-react";
+import { ResumeData, StudioSettings, StudioAction } from '@/types';
+import { Mail, Phone, MapPin, Code2 as Github, Link2 as Linkedin } from "lucide-react";
 
 // ── Editable text utility ─────────────────────────────────────────────────────
 function Editable({
@@ -71,7 +71,7 @@ function EditableBullet({
 export function ClassicTemplate({ resume, settings, dispatch }: {
   resume: ResumeData;
   settings: StudioSettings;
-  dispatch: React.Dispatch<any>;
+  dispatch: React.Dispatch<StudioAction>;
 }) {
   const acc = settings.accentColor;
   const font = settings.fontFamily;
@@ -172,7 +172,7 @@ export function ClassicTemplate({ resume, settings, dispatch }: {
         <section className="mb-5">
           <h2 className="text-sm font-bold uppercase tracking-widest mb-2" style={{ color: acc }}>Experience</h2>
           <div className="space-y-4">
-            {resume.experience.map((exp, ei) => (
+            {resume.experience.map((exp) => (
               <div key={exp.id}>
                 <div className="flex justify-between items-start">
                   <div>
@@ -317,10 +317,9 @@ export function ClassicTemplate({ resume, settings, dispatch }: {
 }
 
 // ── Modern Template ───────────────────────────────────────────────────────────
-export function ModernTemplate({ resume, settings, dispatch }: {
+export function ModernTemplate({ resume, settings }: {
   resume: ResumeData;
   settings: StudioSettings;
-  dispatch: React.Dispatch<any>;
 }) {
   const acc = settings.accentColor;
   const font = settings.fontFamily;
@@ -463,12 +462,11 @@ export function ModernTemplate({ resume, settings, dispatch }: {
 }
 
 // ── Minimal Template ──────────────────────────────────────────────────────────
-export function MinimalTemplate({ resume, settings, dispatch }: {
+export function MinimalTemplate({ resume, settings }: {
   resume: ResumeData;
   settings: StudioSettings;
-  dispatch: React.Dispatch<any>;
 }) {
-  const acc = settings.accentColor;
+  // acc not used in minimal template (monochrome design)
   const font = settings.fontFamily;
   const sz = settings.fontSize;
   const mg = settings.margins;

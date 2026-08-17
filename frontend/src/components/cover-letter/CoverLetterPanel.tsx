@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Sparkles, TrendingUp, CheckCircle2 } from "lucide-react";
+import { Sparkles } from "lucide-react";
 
 const AI_SUGGESTIONS = [
   { type: "improve", text: "Mention the company's recent Series B funding to show you've done research" },

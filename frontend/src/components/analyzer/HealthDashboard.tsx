@@ -1,23 +1,32 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ANALYZER_SCORES } from "@/data/mock-analyzer";
 import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 import { Target, PenTool, BookOpen, Briefcase, Award, Zap } from "lucide-react";
+import { useResumeAnalysis } from "@/lib/resume-analysis";
 
-const MINI_SCORES = [
-  { label: "ATS Match", score: ANALYZER_SCORES.ats, icon: Target, color: "text-blue-500", stroke: "#3b82f6" },
-  { label: "Grammar", score: ANALYZER_SCORES.grammar, icon: PenTool, color: "text-green-500", stroke: "#22c55e" },
-  { label: "Readability", score: ANALYZER_SCORES.readability, icon: BookOpen, color: "text-purple-500", stroke: "#a855f7" },
-  { label: "Experience", score: ANALYZER_SCORES.experience, icon: Briefcase, color: "text-orange-500", stroke: "#f97316" },
-  { label: "Skills", score: ANALYZER_SCORES.skills, icon: Zap, color: "text-yellow-500", stroke: "#eab308" },
-  { label: "Impact", score: ANALYZER_SCORES.impact, icon: Award, color: "text-pink-500", stroke: "#ec4899" },
+const MINI_SCORE_STYLES = [
+  { label: "ATS Match", icon: Target, color: "text-blue-500", stroke: "#3b82f6" },
+  { label: "Grammar", icon: PenTool, color: "text-green-500", stroke: "#22c55e" },
+  { label: "Readability", icon: BookOpen, color: "text-purple-500", stroke: "#a855f7" },
+  { label: "Experience", icon: Briefcase, color: "text-orange-500", stroke: "#f97316" },
+  { label: "Skills", icon: Zap, color: "text-yellow-500", stroke: "#eab308" },
+  { label: "Impact", icon: Award, color: "text-pink-500", stroke: "#ec4899" },
 ];
 
 export function AnalyzerHealthDashboard() {
+  const analysis = useResumeAnalysis();
   const overallData = [
-    { name: "Score", value: ANALYZER_SCORES.overall, fill: "hsl(var(--accent))" },
-    { name: "Remaining", value: 100 - ANALYZER_SCORES.overall, fill: "hsl(var(--muted))" }
+    { name: "Score", value: analysis.overallScore, fill: "hsl(var(--accent))" },
+    { name: "Remaining", value: 100 - analysis.overallScore, fill: "hsl(var(--muted))" }
+  ];
+  const miniScores = [
+    { ...MINI_SCORE_STYLES[0], score: analysis.atsReadiness },
+    { ...MINI_SCORE_STYLES[1], score: analysis.grammarScore },
+    { ...MINI_SCORE_STYLES[2], score: analysis.readability.score },
+    { ...MINI_SCORE_STYLES[3], score: analysis.experienceScore },
+    { ...MINI_SCORE_STYLES[4], score: analysis.skillsScore },
+    { ...MINI_SCORE_STYLES[5], score: analysis.impactScore },
   ];
 
   return (
@@ -25,7 +34,7 @@ export function AnalyzerHealthDashboard() {
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold">Resume Health</h2>
         <div className="px-3 py-1 bg-accent/10 text-accent text-sm font-medium rounded-full">
-          Top 5% of Candidates
+          {analysis.verdict}
         </div>
       </div>
 
@@ -58,16 +67,16 @@ export function AnalyzerHealthDashboard() {
               </PieChart>
             </ResponsiveContainer>
             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-              <span className="text-5xl font-black">{ANALYZER_SCORES.overall}</span>
+              <span className="text-5xl font-black">{analysis.overallScore}</span>
               <span className="text-xs text-muted-foreground uppercase tracking-widest mt-1">Out of 100</span>
             </div>
           </div>
-          <p className="mt-6 text-center font-medium">Your resume is highly optimized, but there is still room for perfection.</p>
+          <p className="mt-6 text-center font-medium">{analysis.verdictDescription}</p>
         </motion.div>
 
         {/* Mini Scores Grid */}
         <div className="col-span-1 md:col-span-2 grid grid-cols-2 lg:grid-cols-3 gap-4">
-          {MINI_SCORES.map((item, i) => (
+          {miniScores.map((item, i) => (
             <motion.div
               key={item.label}
               initial={{ opacity: 0, y: 10 }}

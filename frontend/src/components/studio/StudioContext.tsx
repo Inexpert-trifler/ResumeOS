@@ -1,27 +1,14 @@
 "use client";
 
-import { createContext, useContext, useReducer, ReactNode } from "react";
-import { StudioState, StudioAction, ResumeData, ResumeSection, StudioSettings } from '@/types';
+import { createContext, useContext, useReducer, useEffect, useRef, ReactNode } from "react";
+import { StudioState, StudioAction, ResumeData } from '@/types';
 import { MOCK_RESUME, DEFAULT_SECTIONS, DEFAULT_SETTINGS } from "@/data/mock-resume";
-import { readResumeDraft } from "@/lib/resume-draft";
+import { createStudioDraft, readResumeDraft, saveResumeDraft } from "@/lib/resume-draft";
+import { CLOUD_DRAFT_RESTORED_EVENT } from "@/providers/cloud-sync-provider";
 
 const MAX_HISTORY = 30;
 
 function buildInitialState(): StudioState {
-  // Try to load from the builder draft first
-  if (typeof window !== "undefined") {
-    const draft = readResumeDraft();
-    if (draft?.resume) {
-      return {
-        resume: draft.resume,
-        sections: draft.sections ?? DEFAULT_SECTIONS,
-        settings: draft.settings ?? DEFAULT_SETTINGS,
-        history: [draft.resume],
-        historyIndex: 0,
-        activeSectionId: null,
-      };
-    }
-  }
   return {
     resume: MOCK_RESUME,
     sections: DEFAULT_SECTIONS,
@@ -97,6 +84,14 @@ function studioReducer(state: StudioState, action: StudioAction): StudioState {
       return { ...state, settings: { ...state.settings, ...action.payload } };
     case "SET_ACTIVE_SECTION":
       return { ...state, activeSectionId: action.payload };
+    case "HYDRATE":
+      return {
+        ...state,
+        ...action.payload,
+        history: [action.payload.resume],
+        historyIndex: 0,
+        activeSectionId: null,
+      };
     case "UNDO": {
       if (state.historyIndex <= 0) return state;
       const newIndex = state.historyIndex - 1;
@@ -123,9 +118,77 @@ const StudioContext = createContext<StudioContextValue | null>(null);
 
 export function StudioProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(studioReducer, undefined, buildInitialState);
+  const didHydrate = useRef(false);
 
   const canUndo = state.historyIndex > 0;
   const canRedo = state.historyIndex < state.history.length - 1;
+
+  // Hydrate from localStorage exactly once after the component mounts
+  useEffect(() => {
+    const draft = readResumeDraft();
+    if (draft?.resume) {
+      dispatch({
+        type: "HYDRATE",
+        payload: {
+          resume: draft.resume,
+          sections: draft.sections ?? DEFAULT_SECTIONS,
+          settings: draft.settings ?? DEFAULT_SETTINGS,
+        },
+      });
+    }
+    // We set didHydrate to true so the next effect starts saving changes
+    didHydrate.current = true;
+  }, []);
+
+  // Save changes to localStorage after hydration
+  useEffect(() => {
+    if (!didHydrate.current) return;
+
+    const timer = window.setTimeout(() => {
+      const existing = readResumeDraft();
+      saveResumeDraft(
+        createStudioDraft(state.resume, existing, new Date(), {
+          sections: state.sections,
+          settings: state.settings,
+        })
+      );
+    }, 400);
+
+    return () => window.clearTimeout(timer);
+  }, [state.resume, state.sections, state.settings]);
+
+  useEffect(() => {
+    const restoreCloudDraft = () => {
+      const draft = readResumeDraft();
+      if (!draft?.resume) return;
+      dispatch({
+        type: "HYDRATE",
+        payload: {
+          resume: draft.resume,
+          sections: draft.sections ?? DEFAULT_SECTIONS,
+          settings: draft.settings ?? DEFAULT_SETTINGS,
+        },
+      });
+    };
+
+    window.addEventListener(CLOUD_DRAFT_RESTORED_EVENT, restoreCloudDraft);
+    return () => window.removeEventListener(CLOUD_DRAFT_RESTORED_EVENT, restoreCloudDraft);
+  }, []);
+
+  useEffect(() => {
+    const handlePageHide = () => {
+      const existing = readResumeDraft();
+      saveResumeDraft(
+        createStudioDraft(state.resume, existing, new Date(), {
+          sections: state.sections,
+          settings: state.settings,
+        })
+      );
+    };
+
+    window.addEventListener("pagehide", handlePageHide);
+    return () => window.removeEventListener("pagehide", handlePageHide);
+  }, [state.resume, state.sections, state.settings]);
 
   return (
     <StudioContext.Provider value={{ state, dispatch, canUndo, canRedo }}>

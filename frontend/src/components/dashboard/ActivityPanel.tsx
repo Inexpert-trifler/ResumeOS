@@ -3,7 +3,6 @@
 import { motion } from "framer-motion";
 import { ACTIVITY_FEED, UPCOMING_FEATURES } from "@/data/mock-dashboard";
 import { PlusCircle, CheckCircle, Download, Edit3, Code2 as Github, Link2 as Linkedin, Sparkles } from "lucide-react";
-import { cn } from "@/lib/utils";
 
 const ICON_MAP: Record<string, React.ElementType> = {
   PlusCircle,

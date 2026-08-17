@@ -45,7 +45,7 @@ export function RecruiterReviewSection() {
             ].map(f => (
               <button
                 key={f.id}
-                onClick={() => setActiveFilter(f.id as any)}
+                onClick={() => setActiveFilter(f.id as "all" | "important" | "weak" | "ignored")}
                 className={cn(
                   "px-4 py-2 rounded-full text-sm font-bold transition-all border border-transparent shadow-sm",
                   activeFilter === f.id 

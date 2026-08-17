@@ -8,3 +8,4 @@ export { useResumeStore } from './useResumeStore';
 export { useAnalyzerStore } from './useAnalyzerStore';
 export { useTrackerStore } from './useTrackerStore';
 export { useCoachStore } from './useCoachStore';
+export { useJobStore } from './useJobStore';

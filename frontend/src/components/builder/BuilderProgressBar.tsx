@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { STEP_LABELS } from '@/types';
-import { Check, Save, Clock } from "lucide-react";
+import { Save, Clock } from "lucide-react";
 
 interface BuilderProgressBarProps {
   currentStep: number;
@@ -17,7 +17,7 @@ export function BuilderProgressBar({ currentStep, totalSteps, lastSaved }: Build
   const estimatedMins = remaining * 2;
 
   return (
-    <div className="sticky top-0 z-50 bg-background/95 backdrop-blur-md border-b border-border/50 shadow-sm">
+    <div className="sticky top-14 z-30 bg-background/95 backdrop-blur-md border-b border-border/50 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 py-3 flex items-center gap-6">
         
         {/* Logo/Brand */}

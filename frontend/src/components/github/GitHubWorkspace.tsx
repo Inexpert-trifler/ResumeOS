@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import { FadeUp } from "@/animations/FadeUp";
 import { StaggerContainer, StaggerItem } from "@/animations/StaggerAnimation";
-import { GitBranch, Sparkles, Star, GitFork, Eye, TrendingUp, CheckCircle2, AlertCircle, Zap, Code2 } from "lucide-react";
+import { GitBranch, Sparkles, Star, GitFork, TrendingUp, Zap, Code2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const REPOS = [

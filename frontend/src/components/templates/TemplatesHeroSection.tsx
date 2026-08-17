@@ -1,10 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Container } from "@/components/shared/Container";
 import { FadeUp } from "@/animations/FadeUp";
-import { Button } from "@/components/ui/button";
 import { ArrowRight, FileText } from "lucide-react";
 import Link from "next/link";
 

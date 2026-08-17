@@ -1,9 +1,9 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ANALYSIS_CARDS } from "@/data/mock-analyzer";
 import { Target, FileText, Zap, Layout, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useResumeAnalysis } from "@/lib/resume-analysis";
 
 const ICON_MAP: Record<string, React.ElementType> = {
   Target,
@@ -13,11 +13,13 @@ const ICON_MAP: Record<string, React.ElementType> = {
 };
 
 export function AnalyzerAnalysisCards() {
+  const analysis = useResumeAnalysis();
+
   return (
     <section className="mb-12">
       <h2 className="text-2xl font-bold mb-6">Detailed Analysis</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {ANALYSIS_CARDS.map((card, i) => {
+        {analysis.scoreCards.map((card, i) => {
           const Icon = ICON_MAP[card.icon] || Target;
           
           return (

@@ -1,6 +1,4 @@
 import { Container } from "@/components/shared/Container";
-import { Navbar } from "@/components/layout/Navbar";
-import { Footer } from "@/components/layout/Footer";
 import { ReadingProgress } from "@/components/academy/ReadingProgress";
 import { AcademySidebar } from "@/components/academy/AcademySidebar";
 
@@ -23,11 +21,10 @@ export const metadata = {
 export default function AcademyPage() {
   return (
     <div className="flex flex-col min-h-screen">
-      <Navbar />
       <ReadingProgress />
-      
+
       {/* Hero Header for Academy */}
-      <div className="pt-32 pb-12 bg-zinc-950 text-white border-b border-zinc-800">
+      <div className="pt-12 pb-12 bg-zinc-950 text-white border-b border-zinc-800">
         <Container>
           <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-4">
             Resume Academy
@@ -42,7 +39,7 @@ export default function AcademyPage() {
       <Container className="flex-1 py-12">
         <div className="flex flex-col lg:flex-row gap-12 relative">
           <AcademySidebar />
-          
+
           <main className="flex-1 w-full max-w-full overflow-hidden">
             <IntroductionSection />
             <FundamentalsSection />
@@ -57,8 +54,6 @@ export default function AcademyPage() {
           </main>
         </div>
       </Container>
-      
-      <Footer />
     </div>
   );
 }

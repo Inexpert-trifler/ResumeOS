@@ -10,7 +10,7 @@ import { ResumeCanvas } from "@/components/studio/ResumeCanvas";
 export default function StudioPage() {
   return (
     <StudioProvider>
-      <div className="flex flex-col h-screen w-screen overflow-hidden bg-background">
+      <div className="flex flex-col h-full w-full overflow-hidden bg-background">
         <StudioToolbar />
         
         <div className="flex-1 overflow-hidden relative">

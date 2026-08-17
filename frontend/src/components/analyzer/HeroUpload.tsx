@@ -1,10 +1,13 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { UploadCloud, FileText, CheckCircle2 } from "lucide-react";
+import { UploadCloud } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useResumeAnalysis } from "@/lib/resume-analysis";
 
 export function AnalyzerHeroUpload() {
+  const analysis = useResumeAnalysis();
+
   return (
     <section className="mb-12">
       {/* Header */}
@@ -22,7 +25,7 @@ export function AnalyzerHeroUpload() {
           transition={{ delay: 0.1 }}
           className="text-muted-foreground text-lg max-w-2xl mx-auto"
         >
-          Upload your resume and receive a complete professional analysis. Identify weak spots, optimize for ATS, and impress recruiters.
+          {analysis.heroDescription}
         </motion.p>
       </div>
 
@@ -42,8 +45,8 @@ export function AnalyzerHeroUpload() {
             <UploadCloud className="w-8 h-8 text-accent" />
           </div>
           
-          <h3 className="text-xl font-bold mb-2">Drag & Drop your Resume</h3>
-          <p className="text-sm text-muted-foreground mb-6">Supported formats: PDF, DOCX (Max 5MB)</p>
+          <h3 className="text-xl font-bold mb-2">{analysis.heroStatus}</h3>
+          <p className="text-sm text-muted-foreground mb-6">Last saved: {analysis.lastSavedLabel}</p>
           
           <div className="flex items-center gap-4 relative z-10">
             <Button size="lg" className="rounded-full shadow-lg shadow-accent/20">
@@ -51,7 +54,7 @@ export function AnalyzerHeroUpload() {
             </Button>
             <span className="text-muted-foreground text-sm">or</span>
             <Button variant="outline" size="lg" className="rounded-full bg-background/50 backdrop-blur">
-              Use Demo Resume
+              View Saved Draft
             </Button>
           </div>
         </div>

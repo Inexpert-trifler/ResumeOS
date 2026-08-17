@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { AtsAnalysis, AtsSuggestion } from '@/types';
+import type { AtsAnalysis } from '@/types';
 
 interface AnalyzerStoreState {
   analysis: AtsAnalysis | null;

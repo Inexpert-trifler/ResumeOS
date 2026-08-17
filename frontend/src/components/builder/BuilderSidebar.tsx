@@ -144,7 +144,7 @@ export function BuilderSidebar({ state, onGoToStep }: BuilderSidebarProps) {
       <div className="bg-accent/5 border border-accent/20 rounded-2xl p-4">
         <h3 className="font-bold text-sm mb-2 text-accent">💡 Quick Tip</h3>
         <p className="text-xs text-muted-foreground leading-relaxed">
-          Use quantified achievements in your experience and summary. Numbers catch a recruiter's eye instantly.
+          Use quantified achievements in your experience and summary. Numbers catch a recruiter&apos;s eye instantly.
         </p>
       </div>
     </aside>

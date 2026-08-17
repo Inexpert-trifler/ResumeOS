@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { FadeUp } from "@/animations/FadeUp";
 import { StaggerContainer, StaggerItem } from "@/animations/StaggerAnimation";
 import { Mic, Building2, Code2, Users, MessageCircle, Brain, ChevronRight, Sparkles, Send, Bot, User } from "lucide-react";
@@ -63,7 +63,7 @@ export function InterviewWorkspace() {
               <Sparkles className="w-3.5 h-3.5 text-accent" />
               AI Interview Coach · Powered by GPT-4
             </div>
-            <h2 className="text-3xl font-bold tracking-tight">Practice Like It's the Real Thing</h2>
+            <h2 className="text-3xl font-bold tracking-tight">Practice Like It&apos;s the Real Thing</h2>
             <p className="text-muted-foreground max-w-xl mx-auto text-sm leading-relaxed">
               Simulate real interviews at top companies. Get instant AI feedback on your answers, tone, and structure.
             </p>
@@ -123,6 +123,7 @@ export function InterviewWorkspace() {
             <Button
               onClick={() => setStarted(true)}
               disabled={!selectedCompany}
+              aria-pressed={started}
               className="w-full rounded-xl gap-2"
             >
               Start Mock Interview

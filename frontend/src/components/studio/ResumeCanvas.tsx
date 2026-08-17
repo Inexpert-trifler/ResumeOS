@@ -3,7 +3,23 @@
 import { useStudio } from "./StudioContext";
 import { ClassicTemplate, ModernTemplate, MinimalTemplate } from "./templates/ResumeTemplates";
 import { motion } from "framer-motion";
-import { cn } from "@/lib/utils";
+import { FileX2 } from "lucide-react";
+
+function CorporateUnavailable() {
+  return (
+    <div className="flex min-h-[1131px] items-center justify-center bg-white px-16 text-center">
+      <div className="max-w-md">
+        <div className="mx-auto mb-5 w-14 h-14 rounded-2xl bg-muted flex items-center justify-center">
+          <FileX2 className="w-7 h-7 text-muted-foreground" />
+        </div>
+        <h2 className="text-2xl font-bold text-foreground mb-3">Corporate template unavailable</h2>
+        <p className="text-sm text-muted-foreground">
+          Sprint 1 supports Classic, Modern, and Minimal templates. Please switch templates to continue editing or export.
+        </p>
+      </div>
+    </div>
+  );
+}
 
 export function ResumeCanvas() {
   const { state, dispatch } = useStudio();
@@ -14,12 +30,11 @@ export function ResumeCanvas() {
       case "classic":
         return <ClassicTemplate resume={resume} settings={settings} dispatch={dispatch} />;
       case "modern":
-        return <ModernTemplate resume={resume} settings={settings} dispatch={dispatch} />;
+        return <ModernTemplate resume={resume} settings={settings} />;
       case "minimal":
-        return <MinimalTemplate resume={resume} settings={settings} dispatch={dispatch} />;
+        return <MinimalTemplate resume={resume} settings={settings} />;
       case "corporate":
-        // Fallback to classic for now if corporate is not fully implemented
-        return <ClassicTemplate resume={resume} settings={settings} dispatch={dispatch} />;
+        return <CorporateUnavailable />;
       default:
         return <ClassicTemplate resume={resume} settings={settings} dispatch={dispatch} />;
     }

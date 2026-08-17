@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { FadeUp } from "@/animations/FadeUp";
 import { StaggerContainer, StaggerItem } from "@/animations/StaggerAnimation";
 import { Mail, Sparkles, FileText, Briefcase, Palette, Wand2, CheckCircle2, Zap } from "lucide-react";

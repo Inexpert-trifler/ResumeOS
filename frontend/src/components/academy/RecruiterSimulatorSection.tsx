@@ -33,7 +33,7 @@ export function RecruiterSimulatorSection() {
           The 6-Second Simulator
         </h2>
         <p className="text-lg text-muted-foreground leading-relaxed mb-8 max-w-3xl">
-          Click the button below to see exactly where a recruiter's eyes go during the initial 6-second scan.
+          Click the button below to see exactly where a recruiter&apos;s eyes go during the initial 6-second scan.
         </p>
         
         {!isScanning || scanStep === 5 ? (

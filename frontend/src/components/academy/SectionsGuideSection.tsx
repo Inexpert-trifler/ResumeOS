@@ -102,7 +102,7 @@ export function SectionsGuideSection() {
                     <h4 className="font-semibold text-destructive">How 90% write it</h4>
                   </div>
                   <p className="text-sm font-medium whitespace-pre-line text-foreground/80 italic">
-                    "{activeContent.bad}"
+                    {`"${activeContent.bad}"`}
                   </p>
                 </div>
 
@@ -116,7 +116,7 @@ export function SectionsGuideSection() {
                     <h4 className="font-semibold text-green-600 dark:text-green-400">The Top 1% Way</h4>
                   </div>
                   <p className="text-sm font-medium whitespace-pre-line text-foreground/90">
-                    "{activeContent.good}"
+                    {`"${activeContent.good}"`}
                   </p>
                 </div>
               </div>

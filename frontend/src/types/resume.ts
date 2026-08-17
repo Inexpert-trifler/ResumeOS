@@ -144,5 +144,6 @@ export type StudioAction =
   | { type: "TOGGLE_SECTION"; payload: string }
   | { type: "UPDATE_SETTINGS"; payload: Partial<StudioSettings> }
   | { type: "SET_ACTIVE_SECTION"; payload: string | null }
+  | { type: "HYDRATE"; payload: { resume: ResumeData; sections: ResumeSection[]; settings: StudioSettings } }
   | { type: "UNDO" }
   | { type: "REDO" };

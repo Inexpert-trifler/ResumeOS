@@ -93,7 +93,7 @@ export const QUICK_ACTIONS = [
     title: "Analyze ATS",
     description: "Check keyword matches",
     icon: "Target",
-    href: "#",
+    href: "/analyzer",
     color: "bg-green-500/10 text-green-500",
   },
   {
@@ -101,7 +101,7 @@ export const QUICK_ACTIONS = [
     title: "Interview Prep",
     description: "Practice with AI",
     icon: "MessageSquare",
-    href: "#",
+    href: "/interview-prep",
     color: "bg-orange-500/10 text-orange-500",
   },
 ];

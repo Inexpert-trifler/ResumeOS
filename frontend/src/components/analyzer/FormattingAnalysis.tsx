@@ -2,20 +2,26 @@
 
 import { motion } from "framer-motion";
 import { AlignLeft, Type, MoveVertical, MoveHorizontal } from "lucide-react";
+import { useResumeAnalysis } from "@/lib/resume-analysis";
+
+const ICON_MAP: Record<string, React.ElementType> = {
+  MoveHorizontal,
+  AlignLeft,
+  Type,
+  MoveVertical,
+};
 
 export function AnalyzerFormattingAnalysis() {
-  const formattingMetrics = [
-    { name: "White Space", score: 90, status: "Excellent", icon: MoveHorizontal },
-    { name: "Alignment", score: 100, status: "Perfect", icon: AlignLeft },
-    { name: "Font Consistency", score: 95, status: "Excellent", icon: Type },
-    { name: "Section Spacing", score: 85, status: "Good", icon: MoveVertical },
-  ];
+  const analysis = useResumeAnalysis();
 
   return (
     <section className="mb-12">
       <h2 className="text-2xl font-bold mb-6">Formatting Analysis</h2>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {formattingMetrics.map((metric, i) => (
+        {analysis.formattingMetrics.map((metric, i) => {
+          const Icon = ICON_MAP[metric.icon] || MoveHorizontal;
+
+          return (
           <motion.div
             key={metric.name}
             initial={{ opacity: 0, scale: 0.95 }}
@@ -24,7 +30,7 @@ export function AnalyzerFormattingAnalysis() {
             className="p-5 rounded-2xl border border-border/50 bg-card hover:border-accent/30 transition-colors"
           >
             <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center mb-4 text-muted-foreground">
-              <metric.icon className="w-5 h-5" />
+              <Icon className="w-5 h-5" />
             </div>
             <h3 className="font-semibold text-foreground mb-1">{metric.name}</h3>
             
@@ -40,7 +46,8 @@ export function AnalyzerFormattingAnalysis() {
               />
             </div>
           </motion.div>
-        ))}
+          );
+        })}
       </div>
     </section>
   );

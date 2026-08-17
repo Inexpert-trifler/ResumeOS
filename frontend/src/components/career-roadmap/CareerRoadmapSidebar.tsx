@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { ArrowLeft, Map, Target, TrendingUp, Clock, Sparkles, CheckCircle } from "lucide-react";
+import { ArrowLeft, Target, Clock, Sparkles, CheckCircle } from "lucide-react";
 
 const GOALS = [
   { label: "Staff Engineer", active: true, timeline: "18 months" },

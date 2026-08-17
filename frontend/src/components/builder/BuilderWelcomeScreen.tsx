@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Sparkles, Clock, CheckCircle2, ArrowRight } from "lucide-react";
+import { Sparkles, Clock, ArrowRight } from "lucide-react";
 
 interface BuilderWelcomeScreenProps {
   onStart: () => void;
@@ -43,8 +43,8 @@ export function BuilderWelcomeScreen({ onStart }: BuilderWelcomeScreenProps) {
           transition={{ delay: 0.2 }}
           className="text-lg text-muted-foreground mb-8"
         >
-          This isn't a form. It's a guided career coaching session. 
-          Answer each question honestly and we'll do the heavy lifting.
+          This isn&apos;t a form. It&apos;s a guided career coaching session. 
+          Answer each question honestly and we&apos;ll do the heavy lifting.
         </motion.p>
 
         <motion.div

@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Sparkles, BookOpen, ExternalLink } from "lucide-react";
+import { Sparkles, ExternalLink } from "lucide-react";
 
 const LEARNING = [
   { title: "System Design Interview Vol. 2", type: "Book", time: "20h", priority: "Critical" },

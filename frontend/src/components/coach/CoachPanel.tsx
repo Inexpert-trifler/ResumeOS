@@ -55,7 +55,7 @@ export function CoachPanel() {
               <h4 className="font-semibold">The XYZ Formula</h4>
             </div>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Google recruiters recommend the XYZ formula: "Accomplished [X] as measured by [Y], by doing [Z]." Always try to quantify your impact!
+              Google recruiters recommend the XYZ formula: &quot;Accomplished [X] as measured by [Y], by doing [Z].&quot; Always try to quantify your impact!
             </p>
           </div>
 
@@ -67,7 +67,7 @@ export function CoachPanel() {
                 <XCircle className="w-4 h-4" />
                 <span className="text-xs font-bold uppercase tracking-wider">Weak Answer</span>
               </div>
-              <p className="text-sm text-foreground/80 italic">"{COACH_TIPS.weak}"</p>
+              <p className="text-sm text-foreground/80 italic">{`"${COACH_TIPS.weak}"`}</p>
             </div>
 
             {/* Arrow */}
@@ -81,7 +81,7 @@ export function CoachPanel() {
                 <Sparkles className="w-4 h-4" />
                 <span className="text-xs font-bold uppercase tracking-wider">Strong Answer</span>
               </div>
-              <p className="text-sm text-foreground font-medium">"{COACH_TIPS.strong}"</p>
+              <p className="text-sm text-foreground font-medium">{`"${COACH_TIPS.strong}"`}</p>
             </div>
           </div>
         </div>

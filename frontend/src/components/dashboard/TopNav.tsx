@@ -1,96 +1,156 @@
 "use client";
 
-import { Search, Bell, Plus, User, ChevronRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useResumeDraftSnapshot } from "@/lib/resume-draft";
+import { UserButton, useUser } from "@clerk/nextjs";
+import { useEffect, useState } from "react";
+import { cn } from "@/lib/utils";
+import { Moon, Sun, FileText, User } from "lucide-react";
+import { useTheme } from "next-themes";
+import { motion } from "framer-motion";
 
-const ROUTE_LABELS: Record<string, string> = {
-  dashboard: "Dashboard",
-  builder: "Resume Builder",
-  studio: "Resume Studio",
-  academy: "Resume Academy",
-  templates: "Templates",
-  analyzer: "ATS Analyzer",
-  coach: "AI Coach",
-  tracker: "Job Tracker",
-};
+// ─── Nav links ────────────────────────────────────────────────────────────────
 
-function Breadcrumbs() {
-  const pathname = usePathname();
-  const segments = pathname.split("/").filter(Boolean);
+const NAV_LINKS = [
+  { label: "Dashboard",  href: "/dashboard" },
+  { label: "Templates",  href: "/templates" },
+  { label: "Academy",    href: "/academy" },
+  { label: "Studio",     href: "/studio" },
+  { label: "Analyzer",   href: "/analyzer" },
+  { label: "Coach",      href: "/coach" },
+  { label: "Tracker",    href: "/tracker" },
+];
 
-  if (segments.length === 0) return null;
+// ─── Theme toggle ─────────────────────────────────────────────────────────────
+
+function ThemeToggleButton() {
+  const { resolvedTheme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
+  if (!mounted) {
+    return (
+      <button className="w-8 h-8 rounded-full flex items-center justify-center text-muted-foreground">
+        <Sun className="w-4 h-4" />
+      </button>
+    );
+  }
 
   return (
-    <nav aria-label="Breadcrumb" className="hidden sm:flex items-center gap-1 text-sm text-muted-foreground">
-      {segments.map((segment, index) => {
-        const isLast = index === segments.length - 1;
-        const href = "/" + segments.slice(0, index + 1).join("/");
-        const label = ROUTE_LABELS[segment] ?? segment.charAt(0).toUpperCase() + segment.slice(1);
-
-        return (
-          <span key={href} className="flex items-center gap-1">
-            {index > 0 && <ChevronRight className="w-3.5 h-3.5 opacity-40 shrink-0" />}
-            {isLast ? (
-              <span className="font-medium text-foreground">{label}</span>
-            ) : (
-              <Link href={href} className="hover:text-foreground transition-colors">
-                {label}
-              </Link>
-            )}
-          </span>
-        );
-      })}
-    </nav>
+    <button
+      aria-label="Toggle theme"
+      onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+      className="w-8 h-8 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-white/10 transition-all"
+    >
+      {resolvedTheme === "dark" ? (
+        <Moon className="w-4 h-4" />
+      ) : (
+        <Sun className="w-4 h-4" />
+      )}
+    </button>
   );
 }
 
+// ─── Top Nav ──────────────────────────────────────────────────────────────────
+
 export function DashboardTopNav() {
+  const pathname = usePathname();
+  const draft = useResumeDraftSnapshot();
+  const { user } = useUser();
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  const displayName = isMounted
+    ? (
+        [
+          draft?.builder?.personalInfo.firstName?.trim(),
+          draft?.builder?.personalInfo.lastName?.trim(),
+        ]
+          .filter(Boolean)
+          .join(" ") ||
+        draft?.resume?.header.name?.trim() ||
+        user?.fullName ||
+        user?.primaryEmailAddress?.emailAddress ||
+        "Guest"
+      )
+    : "Guest";
+
+  const isActive = (href: string) =>
+    pathname === href || pathname.startsWith(href + "/");
+
   return (
-    <header className="h-14 shrink-0 border-b border-border/50 bg-background/80 backdrop-blur-xl sticky top-0 z-40 flex items-center justify-between px-6 gap-4">
-      {/* Left: Breadcrumbs + Search */}
-      <div className="flex items-center gap-4 flex-1 min-w-0">
-        <Breadcrumbs />
+    <header className="h-14 shrink-0 sticky top-0 z-40 flex items-center justify-between px-6 gap-4 bg-background/90 backdrop-blur-xl border-b border-border/30">
 
-        <div className="relative hidden md:block ml-auto max-w-xs w-full">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
-          <input
-            type="text"
-            placeholder="Search..."
-            className="w-full h-8 pl-8 pr-4 bg-muted/60 border border-border/40 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent/40 transition-all placeholder:text-muted-foreground/60"
-          />
+      {/* Logo */}
+      <Link href="/dashboard" className="flex items-center gap-2 shrink-0">
+        <div className="w-7 h-7 rounded-lg bg-accent flex items-center justify-center shadow-sm shadow-accent/30">
+          <FileText className="w-3.5 h-3.5 text-white" />
         </div>
-      </div>
+        <span className="font-bold text-sm tracking-tight hidden sm:block">
+          Resume<span className="text-accent">OS</span>
+        </span>
+      </Link>
 
-      {/* Right Actions */}
+      {/* Center pill nav */}
+      <nav
+        aria-label="Main navigation"
+        className="hidden md:flex items-center gap-1 bg-muted/60 border border-border/30 backdrop-blur rounded-full px-2 py-1.5"
+      >
+        {NAV_LINKS.map((link) => {
+          const active = isActive(link.href);
+          return (
+            <Link
+              key={link.href}
+              href={link.href}
+              aria-current={active ? "page" : undefined}
+              className={cn(
+                "relative px-3.5 py-1 rounded-full text-sm font-medium transition-colors duration-150",
+                active
+                  ? "text-accent"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              {active && (
+                <motion.span
+                  layoutId="topNavActivePill"
+                  className="absolute inset-0 rounded-full bg-accent/15 border border-accent/20"
+                  transition={{ type: "spring", stiffness: 400, damping: 35 }}
+                />
+              )}
+              <span className="relative z-10">{link.label}</span>
+            </Link>
+          );
+        })}
+      </nav>
+
+      {/* Right actions */}
       <div className="flex items-center gap-2 shrink-0">
-        <Link href="/builder">
-          <Button size="sm" className="hidden sm:flex rounded-full gap-1.5 h-8 px-3 text-xs shadow-sm shadow-accent/10">
-            <Plus className="w-3.5 h-3.5" />
-            New Resume
-          </Button>
-        </Link>
+        <ThemeToggleButton />
 
-        <button
-          aria-label="Notifications"
-          className="relative p-2 text-muted-foreground hover:text-foreground transition-colors hover:bg-muted rounded-lg"
+        <Link
+          href="/builder"
+          className="hidden sm:flex items-center gap-1.5 bg-accent hover:bg-accent/90 text-white text-xs font-semibold px-3.5 py-2 rounded-full transition-all shadow-sm shadow-accent/20 hover:shadow-accent/30"
         >
-          <Bell className="w-4 h-4" />
-          <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-red-500 rounded-full border border-background" />
-        </button>
+          <FileText className="w-3.5 h-3.5" />
+          Build Resume
+        </Link>
 
         <div className="w-px h-5 bg-border/50 mx-1 hidden sm:block" />
 
-        <button
-          aria-label="User menu"
-          className="flex items-center gap-2 hover:bg-muted px-2 py-1.5 rounded-xl transition-colors border border-transparent hover:border-border/50"
-        >
-          <div className="w-6 h-6 rounded-full bg-accent/15 flex items-center justify-center border border-accent/20">
-            <User className="w-3.5 h-3.5 text-accent" />
-          </div>
-          <span className="text-sm font-medium hidden md:block">Alex M.</span>
-        </button>
+        <div className="w-8 h-8 rounded-full bg-accent/15 border border-accent/20 flex items-center justify-center overflow-hidden">
+          {isMounted ? (
+            <UserButton
+              userProfileUrl="/user-profile"
+              appearance={{ elements: { avatarBox: "w-8 h-8" } }}
+            />
+          ) : (
+            <User className="w-4 h-4 text-accent" />
+          )}
+        </div>
       </div>
     </header>
   );

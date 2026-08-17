@@ -1,51 +1,29 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { MoreHorizontal, FileText, ExternalLink, Copy } from "lucide-react";
+import { FileText, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { readResumeDraft, resumeCompletion } from "@/lib/resume-draft";
+import { resumeCompletion, useResumeDraftSnapshot } from "@/lib/resume-draft";
 import { RECENT_RESUMES } from "@/data/mock-dashboard";
 
-interface ResumeCard {
-  id: string;
-  name: string;
-  template: string;
-  lastEdited: string;
-  score: number;
-  isReal: boolean;
-}
-
 export function DashboardRecentResumes() {
-  const [resumes, setResumes] = useState<ResumeCard[]>([]);
-
-  useEffect(() => {
-    const draft = readResumeDraft();
-    const cards: ResumeCard[] = [];
-
-    if (draft?.resume) {
-      const name = draft.resume.header.name || "My Resume";
-      const updatedAt = draft.updatedAt
-        ? new Date(draft.updatedAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })
-        : "today";
-      cards.push({
-        id: "draft",
-        name: `${name} — ${draft.builder?.targetRole || draft.resume.header.title || "Resume"}`,
-        template: draft.settings?.template ?? "classic",
-        lastEdited: updatedAt,
-        score: draft.builder ? resumeCompletion(draft.builder) : 70,
-        isReal: true,
-      });
-    }
-
-    // Fill remaining slots with mock placeholders (visually distinct)
-    RECENT_RESUMES.slice(0, 3 - cards.length).forEach((r) => {
-      cards.push({ ...r, isReal: false });
-    });
-
-    setResumes(cards);
-  }, []);
+  const draft = useResumeDraftSnapshot();
+  const resumes = draft?.resume
+    ? [
+        {
+          id: "draft",
+          name: `${draft.resume.header.name || "My Resume"} — ${draft.builder?.targetRole || draft.resume.header.title || "Resume"}`,
+          template: draft.settings?.template ?? "classic",
+          lastEdited: draft.updatedAt
+            ? new Date(draft.updatedAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })
+            : "today",
+          score: draft.builder ? resumeCompletion(draft.builder) : 70,
+          isReal: true,
+        },
+        ...RECENT_RESUMES.slice(0, 2).map((resume) => ({ ...resume, isReal: false })),
+      ]
+    : RECENT_RESUMES.slice(0, 3).map((resume) => ({ ...resume, isReal: false }));
 
   return (
     <section>

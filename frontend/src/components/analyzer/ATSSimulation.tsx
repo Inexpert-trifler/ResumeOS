@@ -2,8 +2,11 @@
 
 import { motion } from "framer-motion";
 import { CheckCircle2, AlertCircle, ScanLine } from "lucide-react";
+import { useResumeAnalysis } from "@/lib/resume-analysis";
 
 export function AnalyzerATSSimulation() {
+  const analysis = useResumeAnalysis();
+
   return (
     <section className="mb-12">
       <h2 className="text-2xl font-bold mb-6">ATS Simulation</h2>
@@ -45,27 +48,29 @@ export function AnalyzerATSSimulation() {
               <h3 className="text-lg font-semibold">Parsing Results</h3>
             </div>
             <p className="text-muted-foreground text-sm">
-              We passed your resume through standard ATS parsing engines (Taleo, Greenhouse, Workday).
+              {analysis.verdictDescription}
             </p>
           </div>
 
           <div className="space-y-3">
-            <div className="flex items-center gap-3 p-3 rounded-xl bg-green-500/5 border border-green-500/20 text-sm">
-              <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0" />
-              <span>Standard headings correctly identified (Experience, Education).</span>
-            </div>
-            <div className="flex items-center gap-3 p-3 rounded-xl bg-green-500/5 border border-green-500/20 text-sm">
-              <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0" />
-              <span>No complex tables or columns detected.</span>
-            </div>
-            <div className="flex items-center gap-3 p-3 rounded-xl bg-green-500/5 border border-green-500/20 text-sm">
-              <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0" />
-              <span>Contact information parsed successfully.</span>
-            </div>
-            <div className="flex items-center gap-3 p-3 rounded-xl bg-yellow-500/5 border border-yellow-500/20 text-sm">
-              <AlertCircle className="w-5 h-5 text-yellow-500 shrink-0" />
-              <span>Date formatting in 'Education' is non-standard, may cause parsing issues in legacy ATS.</span>
-            </div>
+            {analysis.atsSimulation.map((item) => {
+              const isPass = item.state === "pass";
+              return (
+                <div
+                  key={item.id}
+                  className={`flex items-center gap-3 p-3 rounded-xl text-sm ${
+                    isPass ? "bg-green-500/5 border border-green-500/20" : "bg-yellow-500/5 border border-yellow-500/20"
+                  }`}
+                >
+                  {isPass ? (
+                    <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0" />
+                  ) : (
+                    <AlertCircle className="w-5 h-5 text-yellow-500 shrink-0" />
+                  )}
+                  <span>{item.message}</span>
+                </div>
+              );
+            })}
           </div>
         </div>
 

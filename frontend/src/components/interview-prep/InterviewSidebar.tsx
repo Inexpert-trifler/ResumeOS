@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { ArrowLeft, Mic, Code2, Users, Brain, MessageCircle, CheckCircle, Clock, Sparkles } from "lucide-react";
+import { ArrowLeft, Mic, Code2, Users, Brain, MessageCircle, CheckCircle, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const INTERVIEW_TYPES = [

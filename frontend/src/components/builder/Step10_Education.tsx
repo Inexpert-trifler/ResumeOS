@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { StepWrapper } from "./StepWrapper";
 import { BuilderState, Education } from '@/types';
 import { motion, AnimatePresence } from "framer-motion";
@@ -11,12 +10,13 @@ import { cn } from "@/lib/utils";
 interface Step10Props {
   state: BuilderState;
   update: (partial: Partial<BuilderState>) => void;
+  validationError?: string;
 }
 
 const inputCls = "w-full bg-muted/50 border border-border/50 rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent transition-all";
 const labelCls = "block text-xs font-semibold text-muted-foreground mb-1.5 uppercase tracking-wider";
 
-export function Step10_Education({ state, update }: Step10Props) {
+export function Step10_Education({ state, update, validationError }: Step10Props) {
   const addEdu = () => {
     const newEdu: Education = {
       id: Date.now().toString(), institution: "", degree: "", field: "",
@@ -61,7 +61,16 @@ export function Step10_Education({ state, update }: Step10Props) {
 
                   <div>
                     <label className={labelCls}>Institution *</label>
-                    <input value={edu.institution} onChange={(e) => setField("institution")(e.target.value)} placeholder="MIT, Stanford, IIT..." className={inputCls} />
+                    <input
+                      value={edu.institution}
+                      onChange={(e) => setField("institution")(e.target.value)}
+                      placeholder="MIT, Stanford, IIT..."
+                      className={cn(inputCls, validationError && !edu.institution.trim() && "border-destructive/60 focus:border-destructive focus:ring-destructive/20")}
+                      aria-invalid={Boolean(validationError && !edu.institution.trim())}
+                    />
+                    {validationError && !edu.institution.trim() && (
+                      <p className="mt-1 text-xs text-destructive">Institution is required.</p>
+                    )}
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
@@ -106,6 +115,12 @@ export function Step10_Education({ state, update }: Step10Props) {
         <Button onClick={addEdu} variant="outline" className="w-full rounded-xl border-dashed border-border h-14 text-sm text-muted-foreground hover:text-foreground hover:border-accent/50 gap-2">
           <Plus className="w-4 h-4" /> Add Education
         </Button>
+
+        {validationError && (
+          <p className="text-sm text-destructive" aria-live="polite">
+            {validationError}
+          </p>
+        )}
       </div>
     </StepWrapper>
   );

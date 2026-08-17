@@ -12,10 +12,12 @@ function ProjectCard({
   project,
   onUpdate,
   onDelete,
+  showValidation = false,
 }: {
   project: Project;
   onUpdate: (p: Project) => void;
   onDelete: () => void;
+  showValidation?: boolean;
 }) {
   const [expanded, setExpanded] = useState(true);
   const [techInput, setTechInput] = useState("");
@@ -43,6 +45,7 @@ function ProjectCard({
 
   const labelCls = "block text-xs font-semibold text-muted-foreground mb-1.5 uppercase tracking-wider";
   const inputCls = "w-full bg-muted/50 border border-border/50 rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent transition-all";
+  const nameError = showValidation && !project.name.trim() ? "Project name is required." : "";
 
   return (
     <motion.div
@@ -88,7 +91,14 @@ function ProjectCard({
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className={labelCls}>Project Name *</label>
-                  <input value={project.name} onChange={(e) => set("name")(e.target.value)} placeholder="My Awesome App" className={inputCls} />
+                  <input
+                    value={project.name}
+                    onChange={(e) => set("name")(e.target.value)}
+                    placeholder="My Awesome App"
+                    className={cn(inputCls, nameError && "border-destructive/60 focus:border-destructive focus:ring-destructive/20")}
+                    aria-invalid={Boolean(nameError)}
+                  />
+                  {nameError && <p className="mt-1 text-xs text-destructive">{nameError}</p>}
                 </div>
                 <div>
                   <label className={labelCls}>Your Role</label>
@@ -176,9 +186,10 @@ function ProjectCard({
 interface Step08Props {
   state: BuilderState;
   update: (partial: Partial<BuilderState>) => void;
+  validationError?: string;
 }
 
-export function Step08_Projects({ state, update }: Step08Props) {
+export function Step08_Projects({ state, update, validationError }: Step08Props) {
   const addProject = () => {
     const newProject: Project = {
       id: Date.now().toString(),
@@ -210,6 +221,7 @@ export function Step08_Projects({ state, update }: Step08Props) {
               project={p}
               onUpdate={(updated) => updateProject(p.id, updated)}
               onDelete={() => deleteProject(p.id)}
+              showValidation={Boolean(validationError)}
             />
           ))}
         </AnimatePresence>
@@ -217,6 +229,12 @@ export function Step08_Projects({ state, update }: Step08Props) {
         <Button onClick={addProject} variant="outline" className="w-full rounded-xl border-dashed border-border h-14 text-sm text-muted-foreground hover:text-foreground hover:border-accent/50 gap-2">
           <Plus className="w-4 h-4" /> Add a Project
         </Button>
+
+        {validationError && (
+          <p className="text-sm text-destructive" aria-live="polite">
+            {validationError}
+          </p>
+        )}
       </div>
     </StepWrapper>
   );

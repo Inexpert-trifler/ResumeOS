@@ -119,7 +119,11 @@ export function BuilderAiAssistant({
       });
 
       const improved = response.improvedText?.trim();
-      setDraftText(improved || currentText.trim());
+      if (!improved) {
+        throw new Error("AI returned no usable generated text. Please try again.");
+      }
+
+      setDraftText(improved);
       setExplanation(response.explanation);
       setWarnings(response.warnings ?? []);
       setFollowUpQuestions(response.followUpQuestions ?? []);

@@ -139,5 +139,44 @@ export async function analyzeResume(req: AuthenticatedRequest, res: Response): P
 }
 
 export async function generateAiSuggestions(_req: AuthenticatedRequest, res: Response) {
-  res.json({ success: true, suggestions: [] });
+  try {
+    const req = _req;
+    const userId = req.currentUser!.id;
+    const { id } = req.params;
+
+    const [analysisRow] = await db
+      .select({
+        id: resumeAnalysis.id,
+        recommendations: resumeAnalysis.recommendations,
+        strengths: resumeAnalysis.strengths,
+        weaknesses: resumeAnalysis.weaknesses,
+      })
+      .from(resumeAnalysis)
+      .innerJoin(resumes, eq(resumeAnalysis.resumeId, resumes.id))
+      .where(and(eq(resumeAnalysis.id, id), eq(resumes.userId, userId)))
+      .limit(1);
+
+    if (!analysisRow) {
+      res.status(404).json({ success: false, error: "Analysis not found." });
+      return;
+    }
+
+    const recommendations = Array.isArray(analysisRow.recommendations) ? analysisRow.recommendations : [];
+    const strengths = Array.isArray(analysisRow.strengths) ? analysisRow.strengths : [];
+    const weaknesses = Array.isArray(analysisRow.weaknesses) ? analysisRow.weaknesses : [];
+
+    const suggestions = [
+      ...recommendations.slice(0, 5),
+      ...weaknesses.slice(0, 2).map((item) => `Address this weakness: ${item}`),
+      ...strengths.slice(0, 2).map((item) => `Lean into this strength: ${item}`),
+    ].slice(0, 8);
+
+    res.json({
+      success: true,
+      suggestions,
+    });
+  } catch (error) {
+    console.error("[AnalysisController] generateAiSuggestions error:", error);
+    res.status(500).json({ success: false, error: "Failed to generate AI suggestions." });
+  }
 }

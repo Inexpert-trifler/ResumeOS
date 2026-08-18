@@ -1,3 +1,5 @@
+import { getApiBaseUrl } from "./api";
+
 export interface ScoreBreakdown {
   skills: number;
   keywords: number;
@@ -38,9 +40,7 @@ export interface AtsAnalysisResponse {
 
 export class AnalysisService {
   private static tokenProvider: (() => Promise<string | null>) | null = null;
-  private static readonly apiUrl = (
-    process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000/api"
-  ).replace(/\/$/, "");
+  private static readonly apiUrl = getApiBaseUrl();
 
   static configureTokenProvider(provider: (() => Promise<string | null>) | null) {
     this.tokenProvider = provider;

@@ -1,3 +1,5 @@
+import { getApiBaseUrl } from "./api";
+
 export interface CareerRoadmapItemRecord {
   id: string;
   roadmapId: string;
@@ -30,9 +32,7 @@ export interface RoadmapDetailResponse {
 
 export class RoadmapService {
   private static tokenProvider: (() => Promise<string | null>) | null = null;
-  private static readonly apiUrl = (
-    process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000/api"
-  ).replace(/\/$/, "");
+  private static readonly apiUrl = getApiBaseUrl();
 
   static configureTokenProvider(provider: (() => Promise<string | null>) | null) {
     this.tokenProvider = provider;

@@ -30,7 +30,7 @@ export const appConfig = {
 
   // API configuration
   api: {
-    baseUrl: process.env.NEXT_PUBLIC_API_URL ?? '/api',
+    baseUrl: "/api/backend",
     timeout: 30_000,
   },
 } as const;

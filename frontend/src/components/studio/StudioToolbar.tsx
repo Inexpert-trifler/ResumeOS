@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { createStudioDraft, saveResumeDraft, readResumeDraft } from "@/lib/resume-draft";
+import { getApiBaseUrl } from "@/services/api";
 
 const TEMPLATES = [
   { id: "classic",   label: "Classic"   },
@@ -57,8 +58,7 @@ export function StudioToolbar() {
 
     // 1. Try the backend — it returns a fully styled, print-ready HTML document
     try {
-      const apiUrl = (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000/api").replace(/\/$/, "");
-      const res = await fetch(`${apiUrl}/export-pdf`, {
+      const res = await fetch(`${getApiBaseUrl()}/export-pdf`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ resume: state.resume, settings: state.settings }),

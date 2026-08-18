@@ -15,7 +15,6 @@ import {
   createBuilderDraft,
   hydrateBuilderState,
   readResumeDraft,
-  useResumeDraftSnapshot,
   saveResumeDraft,
 } from "@/lib/resume-draft";
 import {
@@ -45,21 +44,17 @@ const OPTIONAL_STEPS = new Set([3, 7, 10, 11, 12, 13, 14]);
 
 export function BuilderWorkspace() {
   const router = useRouter();
-  const draft = useResumeDraftSnapshot();
-  const [state, setState] = useState<BuilderState>(INITIAL_STATE);
-  const [autoSaved, setAutoSaved] = useState<Date | null>(null);
-  const [showMobileSteps, setShowMobileSteps] = useState(false);
-  const [started, setStarted] = useState(false);
-  const skipNextSave = useRef(true);
-
-  useEffect(() => {
+  const [state, setState] = useState<BuilderState>(() => {
     const existing = readResumeDraft();
     if (existing?.builder) {
-      skipNextSave.current = true;
-      setState(hydrateBuilderState(existing.builder));
-      setStarted(true);
+      return hydrateBuilderState(existing.builder);
     }
-  }, []);
+    return INITIAL_STATE;
+  });
+  const [autoSaved, setAutoSaved] = useState<Date | null>(null);
+  const [showMobileSteps, setShowMobileSteps] = useState(false);
+  const [started, setStarted] = useState(() => Boolean(readResumeDraft()?.builder));
+  const skipNextSave = useRef(true);
 
   useEffect(() => {
     const restoreCloudDraft = () => {

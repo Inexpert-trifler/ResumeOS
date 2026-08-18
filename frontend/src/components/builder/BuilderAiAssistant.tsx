@@ -77,19 +77,21 @@ export function BuilderAiAssistant({
     [fieldLabel, targetCompany, targetRole]
   );
 
-  useEffect(() => {
-    if (!open) return;
-
-    setInstruction((current) => current.trim() ? current : (userInstruction?.trim() || defaultPrompt));
-    setDraftText(currentText.trim());
-    setExplanation("");
-    setWarnings([]);
-    setFollowUpQuestions([]);
-    setNeedsMoreInfo(false);
-    setError(null);
-  }, [currentText, defaultPrompt, open, userInstruction]);
-
   const canApply = draftText.trim().length > 0 && !needsMoreInfo && !isGenerating;
+
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (nextOpen) {
+      setInstruction(userInstruction?.trim() || defaultPrompt);
+      setDraftText(currentText.trim());
+      setExplanation("");
+      setWarnings([]);
+      setFollowUpQuestions([]);
+      setNeedsMoreInfo(false);
+      setError(null);
+    }
+
+    setOpen(nextOpen);
+  };
 
   const runImprovement = async () => {
     setIsGenerating(true);
@@ -144,7 +146,7 @@ export function BuilderAiAssistant({
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger
         render={
           <Button
@@ -239,19 +241,15 @@ export function BuilderAiAssistant({
                   className="gap-2 rounded-full px-5"
                 >
                   {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-                  {isGenerating ? "Generating..." : "Generate"}
+                  {isGenerating ? "Generating..." : draftText.trim() ? "Regenerate" : "Generate"}
                 </Button>
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => {
-                    setInstruction(defaultPrompt);
-                    setTone("professional");
-                    setLength("balanced");
-                  }}
+                  onClick={() => setOpen(false)}
                   className="rounded-full"
                 >
-                  Reset
+                  Cancel
                 </Button>
               </div>
             </div>
@@ -324,6 +322,21 @@ export function BuilderAiAssistant({
                   className="rounded-full"
                 >
                   Replace
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => {
+                    setDraftText("");
+                    setExplanation("");
+                    setWarnings([]);
+                    setFollowUpQuestions([]);
+                    setNeedsMoreInfo(false);
+                    setError(null);
+                  }}
+                  className="rounded-full"
+                >
+                  Clear
                 </Button>
               </div>
             </div>

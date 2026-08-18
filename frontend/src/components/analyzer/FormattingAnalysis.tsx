@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { AlignLeft, Type, MoveVertical, MoveHorizontal } from "lucide-react";
-import { useResumeAnalysis } from "@/lib/resume-analysis";
+import { useAnalyzerStore } from "@/stores/useAnalyzerStore";
 
 const ICON_MAP: Record<string, React.ElementType> = {
   MoveHorizontal,
@@ -12,13 +12,14 @@ const ICON_MAP: Record<string, React.ElementType> = {
 };
 
 export function AnalyzerFormattingAnalysis() {
-  const analysis = useResumeAnalysis();
+  const { analysis } = useAnalyzerStore();
+  if (!analysis) return null;
 
   return (
     <section className="mb-12">
       <h2 className="text-2xl font-bold mb-6">Formatting Analysis</h2>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {analysis.formattingMetrics.map((metric, i) => {
+        {analysis.resumeHealth.formattingMetrics.map((metric, i) => {
           const Icon = ICON_MAP[metric.icon] || MoveHorizontal;
 
           return (

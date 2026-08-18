@@ -2,7 +2,6 @@
 
 import { motion } from "framer-motion";
 import { Target, PenTool, BookOpen, Briefcase, Zap, Award } from "lucide-react";
-import { useResumeAnalysis } from "@/lib/resume-analysis";
 import { useAnalyzerStore } from "@/stores/useAnalyzerStore";
 import { AnalyzerChart } from "./AnalyzerChart";
 
@@ -16,23 +15,21 @@ const MINI_SCORE_STYLES = [
 ];
 
 export function AnalyzerHealthDashboard() {
-  const fallbackAnalysis = useResumeAnalysis();
   const { analysis: realAnalysis } = useAnalyzerStore();
+  if (!realAnalysis) return null;
 
-  const score = realAnalysis ? realAnalysis.atsScore : fallbackAnalysis.overallScore;
+  const score = realAnalysis.atsScore;
   const verdict = score >= 80 ? "Excellent Match" : score >= 60 ? "Good Match" : "Needs Improvement";
-  const verdictDesc = realAnalysis?.aiSummary || (score >= 80
-    ? "Your resume strongly aligns with target ATS qualifications."
-    : "Run ATS analysis with your target job description to get tailored recommendations.");
+  const verdictDesc = realAnalysis.aiSummary || "Deterministic match against the job description you provided.";
 
-  const breakdown = realAnalysis?.breakdown;
+  const breakdown = realAnalysis.breakdown;
   const miniScores = [
-    { ...MINI_SCORE_STYLES[0], score: breakdown ? breakdown.skills : fallbackAnalysis.skillsScore },
-    { ...MINI_SCORE_STYLES[1], score: breakdown ? breakdown.keywords : fallbackAnalysis.atsReadiness },
-    { ...MINI_SCORE_STYLES[2], score: breakdown ? breakdown.experience : fallbackAnalysis.experienceScore },
-    { ...MINI_SCORE_STYLES[3], score: breakdown ? breakdown.responsibilities : fallbackAnalysis.impactScore },
-    { ...MINI_SCORE_STYLES[4], score: breakdown ? breakdown.education : fallbackAnalysis.grammarScore },
-    { ...MINI_SCORE_STYLES[5], score: breakdown ? breakdown.softSkills : fallbackAnalysis.readability.score },
+    { ...MINI_SCORE_STYLES[0], score: breakdown.skills },
+    { ...MINI_SCORE_STYLES[1], score: breakdown.keywords },
+    { ...MINI_SCORE_STYLES[2], score: breakdown.experience },
+    { ...MINI_SCORE_STYLES[3], score: breakdown.responsibilities },
+    { ...MINI_SCORE_STYLES[4], score: breakdown.education },
+    { ...MINI_SCORE_STYLES[5], score: breakdown.softSkills },
   ];
 
   return (
@@ -43,7 +40,7 @@ export function AnalyzerHealthDashboard() {
         animate={{ opacity: 1, scale: 1 }}
         className="lg:col-span-4 p-6 rounded-2xl border border-border/50 bg-card flex flex-col items-center justify-center text-center relative overflow-hidden"
       >
-        <h3 className="text-sm font-medium text-muted-foreground mb-4">Overall ATS Health Score</h3>
+        <h3 className="text-sm font-medium text-muted-foreground mb-4">Job Match Score</h3>
         <div className="w-48 h-48 relative">
           <AnalyzerChart score={score} />
         </div>

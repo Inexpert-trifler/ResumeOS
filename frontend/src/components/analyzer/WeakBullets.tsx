@@ -4,7 +4,8 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowDownRight, RefreshCcw, Sparkles, X, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useResumeAnalysis } from "@/lib/resume-analysis";
+import { useAnalyzerStore } from "@/stores/useAnalyzerStore";
+import type { ResumeHealthReport } from "@/services/AnalysisService";
 import { INITIAL_STATE } from "@/types";
 import { builderToResume, createBuilderDraft, hydrateBuilderState, readResumeDraft, saveResumeDraft } from "@/lib/resume-draft";
 import { applyAiImprovementToBuilder, buildAiRequestFromWeakBullet } from "@/services/ai/resume-targets";
@@ -18,10 +19,12 @@ type WeakBulletAiState =
   | { status: "dismissed" };
 
 export function AnalyzerWeakBullets() {
-  const analysis = useResumeAnalysis();
+  const { analysis } = useAnalyzerStore();
   const [aiStates, setAiStates] = useState<Record<string, WeakBulletAiState>>({});
+  if (!analysis) return null;
+  const weakBullets = analysis.resumeHealth.weakBullets;
 
-  const handleRequestAi = async (bullet: (typeof analysis.weakBullets)[number]) => {
+  const handleRequestAi = async (bullet: ResumeHealthReport["weakBullets"][number]) => {
     const existing = readResumeDraft();
     const builder = existing?.builder ? hydrateBuilderState(existing.builder) : INITIAL_STATE;
     const resume = existing?.resume ?? builderToResume(builder);
@@ -66,7 +69,7 @@ export function AnalyzerWeakBullets() {
     const state = aiStates[bulletId];
     if (!state || state.status !== "ready" || !state.response.improvedText) return;
 
-    const bullet = analysis.weakBullets.find((item) => item.id === bulletId);
+    const bullet = weakBullets.find((item) => item.id === bulletId);
     if (!bullet) return;
 
     const existing = readResumeDraft();
@@ -96,7 +99,7 @@ export function AnalyzerWeakBullets() {
       <h2 className="text-2xl font-bold mb-6">Weak Bullet Detection</h2>
 
       <div className="space-y-6">
-        {analysis.weakBullets.map((bullet, i) => {
+        {weakBullets.map((bullet, i) => {
           const aiState = aiStates[bullet.id];
           const improvedText =
             aiState?.status === "ready"
@@ -218,4 +221,3 @@ export function AnalyzerWeakBullets() {
     </section>
   );
 }
-

@@ -36,6 +36,20 @@ export interface AtsAnalysisResponse {
   jobTitleMatch: boolean;
   seniorityMatch: boolean;
   aiSummary?: string;
+  resumeHealth: ResumeHealthReport;
+}
+
+export interface ResumeHealthReport {
+  score: number;
+  contentScore: number;
+  actionVerbsScore: number;
+  contactScore: number;
+  structureScore: number;
+  scoreCards: Array<{ id: string; title: string; score: number; status: string; description: string; icon: string; color: string }>;
+  formattingMetrics: Array<{ name: string; score: number; status: string; icon: string }>;
+  sectionAnalysis: Array<{ id: string; name: string; score: number; strengths: string[]; weaknesses: string[]; suggestions: string[] }>;
+  weakBullets: Array<{ id: string; original: string; suggestion: string; score: number; section: string }>;
+  atsSimulation: Array<{ id: string; state: "pass" | "warn"; message: string }>;
 }
 
 export class AnalysisService {

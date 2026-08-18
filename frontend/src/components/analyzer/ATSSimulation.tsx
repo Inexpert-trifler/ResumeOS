@@ -2,10 +2,11 @@
 
 import { motion } from "framer-motion";
 import { CheckCircle2, AlertCircle, ScanLine } from "lucide-react";
-import { useResumeAnalysis } from "@/lib/resume-analysis";
+import { useAnalyzerStore } from "@/stores/useAnalyzerStore";
 
 export function AnalyzerATSSimulation() {
-  const analysis = useResumeAnalysis();
+  const { analysis } = useAnalyzerStore();
+  if (!analysis) return null;
 
   return (
     <section className="mb-12">
@@ -48,12 +49,12 @@ export function AnalyzerATSSimulation() {
               <h3 className="text-lg font-semibold">Parsing Results</h3>
             </div>
             <p className="text-muted-foreground text-sm">
-              {analysis.verdictDescription}
+              Resume ATS Health: {analysis.resumeHealth.score}/100. This structural score is separate from the Job Match Score above.
             </p>
           </div>
 
           <div className="space-y-3">
-            {analysis.atsSimulation.map((item) => {
+            {analysis.resumeHealth.atsSimulation.map((item) => {
               const isPass = item.state === "pass";
               return (
                 <div

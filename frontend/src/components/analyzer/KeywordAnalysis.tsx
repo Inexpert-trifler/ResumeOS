@@ -2,24 +2,15 @@
 
 import { Check, X, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
-import { useResumeAnalysis } from "@/lib/resume-analysis";
 import { useAnalyzerStore } from "@/stores/useAnalyzerStore";
 
 export function AnalyzerKeywordAnalysis() {
-  const fallbackAnalysis = useResumeAnalysis();
   const { analysis: realAnalysis } = useAnalyzerStore();
+  if (!realAnalysis) return null;
 
-  const matchedKeywords = realAnalysis
-    ? realAnalysis.matchedKeywords.map((k) => k.keyword)
-    : fallbackAnalysis.keywordCoverage.matched;
-
-  const missingKeywords = realAnalysis
-    ? realAnalysis.missingKeywords.map((k) => k.keyword)
-    : fallbackAnalysis.keywordCoverage.missing;
-
-  const matchedSkills = realAnalysis
-    ? realAnalysis.matchedSkills
-    : fallbackAnalysis.keywordCoverage.recommended;
+  const matchedKeywords = realAnalysis.matchedKeywords.map((k) => k.keyword);
+  const missingKeywords = realAnalysis.missingKeywords.map((k) => k.keyword);
+  const matchedSkills = realAnalysis.matchedSkills;
 
   return (
     <section className="mb-12">

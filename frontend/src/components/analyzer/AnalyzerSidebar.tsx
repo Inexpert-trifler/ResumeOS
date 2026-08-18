@@ -1,10 +1,13 @@
 "use client";
 
 import { Lightbulb, Info, Target, TrendingUp } from "lucide-react";
-import { useResumeAnalysis } from "@/lib/resume-analysis";
+import { useAnalyzerStore } from "@/stores/useAnalyzerStore";
 
 export function AnalyzerSidebar() {
-  const analysis = useResumeAnalysis();
+  const { analysis } = useAnalyzerStore();
+  if (!analysis) return null;
+  const jobMatch = analysis.atsScore;
+  const health = analysis.resumeHealth;
 
   return (
     <aside className="w-80 shrink-0 border-l border-border/50 bg-background/50 h-full overflow-y-auto no-scrollbar p-6">
@@ -16,13 +19,13 @@ export function AnalyzerSidebar() {
           <div className="p-5 rounded-2xl bg-accent/5 border border-accent/20">
             <div className="flex items-center gap-2 mb-2 text-accent">
               <TrendingUp className="w-5 h-5" />
-              <h4 className="font-semibold">{analysis.verdict}</h4>
+              <h4 className="font-semibold">{jobMatch >= 80 ? "Excellent Match" : jobMatch >= 60 ? "Good Match" : "Needs Improvement"}</h4>
             </div>
             <p className="text-sm text-muted-foreground leading-relaxed mb-4">
-              {analysis.verdictDescription}
+              Job Match Score: {jobMatch}/100. Resume ATS Health: {health.score}/100.
             </p>
             <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
-              <div className="h-full bg-accent rounded-full" style={{ width: `${analysis.verdictProgress}%` }} />
+              <div className="h-full bg-accent rounded-full" style={{ width: `${jobMatch}%` }} />
             </div>
           </div>
         </div>
@@ -33,10 +36,10 @@ export function AnalyzerSidebar() {
           <div className="p-5 rounded-2xl bg-card border border-border/50 hover:border-accent/30 transition-colors">
             <div className="flex items-center gap-2 mb-2 text-yellow-500">
               <Lightbulb className="w-5 h-5" />
-              <h4 className="font-semibold text-foreground">{analysis.proTipTitle}</h4>
+              <h4 className="font-semibold text-foreground">Job Match Tip</h4>
             </div>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              {analysis.proTip}
+              {analysis.recommendations[0] ?? "No additional recommendation was generated."}
             </p>
           </div>
         </div>
@@ -47,10 +50,10 @@ export function AnalyzerSidebar() {
           <div className="p-5 rounded-2xl bg-card border border-border/50 hover:border-accent/30 transition-colors">
             <div className="flex items-center gap-2 mb-2 text-blue-500">
               <Info className="w-5 h-5" />
-              <h4 className="font-semibold text-foreground">{analysis.factTitle}</h4>
+              <h4 className="font-semibold text-foreground">Keyword Coverage</h4>
             </div>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              {analysis.fact}
+              Matched {analysis.matchedKeywords.length} of {analysis.matchedKeywords.length + analysis.missingKeywords.length} job-description keywords.
             </p>
           </div>
         </div>
@@ -62,9 +65,9 @@ export function AnalyzerSidebar() {
             <div>
               <div className="flex items-center gap-2 mb-1">
                 <Target className="w-4 h-4 text-muted-foreground" />
-                <h4 className="font-semibold text-foreground">{analysis.targetRole}</h4>
+                <h4 className="font-semibold text-foreground">{analysis.jobTitleMatch ? "Target title aligned" : "Target title not aligned"}</h4>
               </div>
-              <p className="text-xs text-muted-foreground">{analysis.targetCompany}</p>
+              <p className="text-xs text-muted-foreground">Based on the job description submitted for this analysis.</p>
             </div>
             <span className="text-xs font-medium text-accent opacity-0 group-hover:opacity-100 transition-opacity">
               Change

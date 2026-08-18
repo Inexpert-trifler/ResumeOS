@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import { Target, FileText, Zap, Layout, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useResumeAnalysis } from "@/lib/resume-analysis";
+import { useAnalyzerStore } from "@/stores/useAnalyzerStore";
 
 const ICON_MAP: Record<string, React.ElementType> = {
   Target,
@@ -13,13 +13,14 @@ const ICON_MAP: Record<string, React.ElementType> = {
 };
 
 export function AnalyzerAnalysisCards() {
-  const analysis = useResumeAnalysis();
+  const { analysis } = useAnalyzerStore();
+  if (!analysis) return null;
 
   return (
     <section className="mb-12">
       <h2 className="text-2xl font-bold mb-6">Detailed Analysis</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {analysis.scoreCards.map((card, i) => {
+        {analysis.resumeHealth.scoreCards.map((card, i) => {
           const Icon = ICON_MAP[card.icon] || Target;
           
           return (

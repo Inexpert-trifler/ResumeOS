@@ -4,9 +4,11 @@ import { db } from "../db";
 import { resumes, jobDescriptions, resumeAnalysis, resumeJobLinks } from "../db/schema";
 import { eq, and } from "drizzle-orm";
 import { JobAnalysisService, type ResumeData } from "../services/job-analysis.service";
+import { ResumeHealthService } from "../services/resume-health.service";
 import { AIService } from "../services/ai.service";
 
 const analysisService = new JobAnalysisService();
+const resumeHealthService = new ResumeHealthService();
 
 export async function analyzeResume(req: AuthenticatedRequest, res: Response): Promise<void> {
   try {
@@ -67,11 +69,14 @@ export async function analyzeResume(req: AuthenticatedRequest, res: Response): P
     }
 
     if (!jobText || !jobText.trim()) {
-      jobText = `Target Role: ${jobTitle || "Software Engineer"}. Looking for candidates experienced in software development, building clean scalable applications, writing bullet points with clear impact, and delivering solutions.`;
+      res.status(400).json({ success: false, error: "A job description is required for ATS job-match analysis." });
+      return;
     }
 
-    // 3. Compute REAL Deterministic ATS Analysis (No hardcoded 85/90 scores)
+    // One canonical, deterministic report. Job Match and Resume ATS Health are
+    // distinct scores so UI consumers cannot present one as the other.
     const report = analysisService.compareResumeToJob(targetResume as ResumeData, jobText, { jobTitle, company });
+    const resumeHealth = resumeHealthService.analyze(targetResume as ResumeData);
 
     // 4. Optionally generate AI summary explanation
     let aiExplanation = { summary: "", actionableAdvice: report.recommendations };
@@ -131,6 +136,7 @@ export async function analyzeResume(req: AuthenticatedRequest, res: Response): P
       jobTitleMatch: report.jobTitleMatch,
       seniorityMatch: report.seniorityMatch,
       aiSummary: aiExplanation.summary,
+      resumeHealth,
     });
   } catch (error) {
     console.error("[AnalysisController] Error running ATS analysis:", error);

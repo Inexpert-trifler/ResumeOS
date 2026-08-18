@@ -28,7 +28,8 @@ export const useAnalyzerStore = create<AnalyzerStoreState>((set, get) => ({
     const jd = params?.jobDescription ?? get().jobDescription;
     const role = params?.targetRole ?? get().targetRole;
 
-    set({ isAnalyzing: true, error: null });
+    // Never leave a prior job's scores visible while a new analysis is running.
+    set({ analysis: null, isAnalyzing: true, error: null });
     try {
       const report = await AnalysisService.analyze({
         jobDescription: jd,

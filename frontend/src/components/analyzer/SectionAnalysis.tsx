@@ -4,18 +4,19 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, Plus, Minus } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useResumeAnalysis } from "@/lib/resume-analysis";
+import { useAnalyzerStore } from "@/stores/useAnalyzerStore";
 
 export function AnalyzerSectionAnalysis() {
-  const analysis = useResumeAnalysis();
-  const firstSectionId = analysis.sectionAnalysis[0]?.id ?? null;
+  const { analysis } = useAnalyzerStore();
+  const firstSectionId = analysis?.resumeHealth.sectionAnalysis[0]?.id ?? null;
   const [openSection, setOpenSection] = useState<string | null>(firstSectionId);
+  if (!analysis) return null;
 
   return (
     <section className="mb-12">
       <h2 className="text-2xl font-bold mb-6">Section by Section</h2>
       <div className="space-y-4">
-        {analysis.sectionAnalysis.map((section) => {
+        {analysis.resumeHealth.sectionAnalysis.map((section) => {
           const isOpen = (openSection ?? firstSectionId) === section.id;
 
           return (

@@ -11,7 +11,8 @@
     "db:migrate": "drizzle-kit migrate",
     "db:migrate:run": "npx ts-node --transpile-only scripts/migrate.ts",
     "db:studio": "drizzle-kit studio",
-    "db:test": "npx ts-node --transpile-only scripts/test-connection.ts"
+    "db:test": "npx ts-node --transpile-only scripts/test-connection.ts",
+    "test:ats": "npx ts-node --transpile-only scripts/test-ats-analysis.ts"
   },
   "dependencies": {
     "@clerk/express": "^2.1.51",

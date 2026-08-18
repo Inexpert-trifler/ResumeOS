@@ -1,6 +1,11 @@
 import Groq from "groq-sdk";
 
-const DEFAULT_MODEL = "llama-3.1-8b-instant";
+const DEFAULT_MODEL = "qwen/qwen3.6-27b";
+const FALLBACK_MODELS = [
+  "openai/gpt-oss-20b",
+  "openai/gpt-oss-120b",
+  "qwen/qwen3.6-27b",
+];
 
 export interface ResumeImprovementParams {
   section: string;
@@ -171,28 +176,36 @@ export class AIService {
     temperature = 0.2
   ): Promise<string> {
     const client = this.getGroqClient();
-    const model = this.getModel();
+    const primaryModel = this.getModel();
+    const models = [primaryModel, ...FALLBACK_MODELS.filter((model) => model !== primaryModel)];
 
-    try {
-      const response = await client.chat.completions.create({
-        model,
-        messages: messages.map((m) => ({
-          role: (m.role === "system" || m.role === "assistant" || m.role === "user" ? m.role : "user") as "system" | "user" | "assistant",
-          content: m.content,
-        })),
-        temperature,
-        max_tokens: 1000,
-      });
+    let lastError: unknown = null;
 
-      const content = response.choices?.[0]?.message?.content;
-      if (!content) {
-        throw new Error("Groq returned an empty response.");
-      }
+    for (const model of models) {
+      try {
+        const response = await client.chat.completions.create({
+          model,
+          messages: messages.map((m) => ({
+            role: (m.role === "system" || m.role === "assistant" || m.role === "user" ? m.role : "user") as "system" | "user" | "assistant",
+            content: m.content,
+          })),
+          temperature,
+          max_tokens: 1000,
+        });
 
-      return content;
-    } catch (error) {
-      if (error instanceof Error) {
-        const msg = error.message;
+        const content = response.choices?.[0]?.message?.content;
+        if (!content) {
+          throw new Error("Groq returned an empty response.");
+        }
+
+        return content;
+      } catch (error) {
+        lastError = error;
+        const msg = error instanceof Error ? error.message : String(error);
+        const isModelMissing = /model .* does not exist|model_not_found|404/i.test(msg);
+        if (isModelMissing && model !== models[models.length - 1]) {
+          continue;
+        }
         if (msg.includes("429") || msg.toLowerCase().includes("rate limit")) {
           throw new Error("Groq API rate limit reached. Please try again shortly.");
         }
@@ -205,8 +218,10 @@ export class AIService {
         // Throw clean error without exposing key or secrets
         throw new Error(msg);
       }
-      throw new Error("Groq API call encountered an unexpected failure.");
     }
+
+    const msg = lastError instanceof Error ? lastError.message : String(lastError ?? "Groq API call encountered an unexpected failure.");
+    throw new Error(msg);
   }
 
   /**

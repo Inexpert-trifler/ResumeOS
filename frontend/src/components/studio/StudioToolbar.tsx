@@ -57,7 +57,8 @@ export function StudioToolbar() {
 
     // 1. Try the backend — it returns a fully styled, print-ready HTML document
     try {
-      const res = await fetch("http://localhost:4000/api/export-pdf", {
+      const apiUrl = (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000/api").replace(/\/$/, "");
+      const res = await fetch(`${apiUrl}/export-pdf`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ resume: state.resume, settings: state.settings }),

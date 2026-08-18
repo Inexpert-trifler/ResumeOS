@@ -1,6 +1,6 @@
 import type { Response } from "express";
 import { type AuthenticatedRequest } from "../middleware/auth";
-import { AIService } from "../services/ai.service";
+import { AIProviderError, AIService } from "../services/ai.service";
 import { AiHistoryRepository } from "../repositories/ai-history.repository";
 import { ResumeRepository } from "../repositories/resume.repository";
 
@@ -42,11 +42,12 @@ export async function testGroq(req: AuthenticatedRequest, res: Response): Promis
     const message = error instanceof Error ? error.message : "AI service test failed.";
     const isRateLimit = message.toLowerCase().includes("rate limit");
     const isMissingKey = message.toLowerCase().includes("groq_api_key");
+    const providerCode = error instanceof AIProviderError ? error.code : null;
 
     res.status(isRateLimit ? 429 : 500).json({
       success: false,
       error: {
-        code: isRateLimit ? "AI_RATE_LIMIT" : isMissingKey ? "MISSING_API_KEY" : "AI_SERVICE_ERROR",
+        code: isRateLimit ? "AI_RATE_LIMIT" : isMissingKey ? "MISSING_API_KEY" : providerCode ?? "AI_SERVICE_ERROR",
         message,
       },
     });
@@ -149,11 +150,12 @@ export async function improveContent(req: AuthenticatedRequest, res: Response): 
     const message = error instanceof Error ? error.message : "AI service encountered an issue.";
     const isRateLimit = message.toLowerCase().includes("rate limit");
     const isMissingKey = message.toLowerCase().includes("groq_api_key");
+    const providerCode = error instanceof AIProviderError ? error.code : null;
 
     res.status(isRateLimit ? 429 : 500).json({
       success: false,
       error: {
-        code: isRateLimit ? "AI_RATE_LIMIT" : isMissingKey ? "MISSING_API_KEY" : "AI_SERVICE_ERROR",
+        code: isRateLimit ? "AI_RATE_LIMIT" : isMissingKey ? "MISSING_API_KEY" : providerCode ?? "AI_SERVICE_ERROR",
         message,
       },
     });

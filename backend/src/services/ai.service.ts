@@ -7,6 +7,16 @@ const FALLBACK_MODELS = [
   "qwen/qwen3.6-27b",
 ];
 
+export class AIProviderError extends Error {
+  constructor(
+    public readonly code: "AI_EMPTY_RESPONSE" | "AI_UNEXPECTED_RESPONSE" | "AI_PROVIDER_ERROR",
+    message: string
+  ) {
+    super(message);
+    this.name = "AIProviderError";
+  }
+}
+
 export interface ResumeImprovementParams {
   section: string;
   content: string;
@@ -193,17 +203,45 @@ export class AIService {
           max_tokens: 1000,
         });
 
-        const content = response.choices?.[0]?.message?.content;
-        if (!content) {
-          throw new Error("Groq returned an empty response.");
-        }
+        const choice = response.choices?.[0];
+        const content = choice?.message?.content;
+        const text = typeof content === "string" ? content.trim() : "";
 
-        return content;
+        if (text) return text;
+
+        // This preserves enough production evidence to diagnose provider behavior
+        // without logging the prompt, completion body, or any secret.
+        console.warn("[AI] Groq completion had no usable content", {
+          model,
+          responseId: response.id,
+          choicesLength: response.choices?.length ?? 0,
+          finishReason: choice?.finish_reason ?? null,
+          hasMessage: Boolean(choice?.message),
+          contentType: content === null ? "null" : typeof content,
+          contentLength: typeof content === "string" ? content.length : 0,
+          usage: response.usage ?? null,
+        });
+
+        throw new AIProviderError(
+          choice?.message ? "AI_EMPTY_RESPONSE" : "AI_UNEXPECTED_RESPONSE",
+          choice?.message
+            ? "Groq completed the request without generated text."
+            : "Groq returned an unexpected completion response."
+        );
       } catch (error) {
         lastError = error;
         const msg = error instanceof Error ? error.message : String(error);
         const isModelMissing = /model .* does not exist|model_not_found|404/i.test(msg);
-        if (isModelMissing && model !== models[models.length - 1]) {
+        const isUnusableCompletion = error instanceof AIProviderError &&
+          (error.code === "AI_EMPTY_RESPONSE" || error.code === "AI_UNEXPECTED_RESPONSE");
+        if ((isModelMissing || isUnusableCompletion) && model !== models[models.length - 1]) {
+          const fallbackReason = isModelMissing
+            ? "model_unavailable"
+            : (error as AIProviderError).code;
+          console.warn("[AI] Retrying Groq with fallback model", {
+            attemptedModel: model,
+            reason: fallbackReason,
+          });
           continue;
         }
         if (msg.includes("429") || msg.toLowerCase().includes("rate limit")) {
@@ -216,12 +254,14 @@ export class AIService {
           throw new Error("Groq API request timed out. Please try again.");
         }
         // Throw clean error without exposing key or secrets
-        throw new Error(msg);
+        if (error instanceof AIProviderError) throw error;
+        throw new AIProviderError("AI_PROVIDER_ERROR", msg);
       }
     }
 
+    if (lastError instanceof AIProviderError) throw lastError;
     const msg = lastError instanceof Error ? lastError.message : String(lastError ?? "Groq API call encountered an unexpected failure.");
-    throw new Error(msg);
+    throw new AIProviderError("AI_PROVIDER_ERROR", msg);
   }
 
   /**
@@ -317,10 +357,22 @@ Return ONLY valid JSON matching the specified schema.`;
     ], 0.2);
 
     const parsed = extractJson<Record<string, unknown>>(rawResponse);
-
     const improvedText = typeof parsed?.improvedText === "string" && parsed.improvedText.trim()
       ? parsed.improvedText.trim()
-      : (typeof parsed?.improved === "string" ? parsed.improved : rawResponse.replace(/^```json|```$/g, "").trim());
+      : "";
+
+    if (!parsed || !improvedText) {
+      console.warn("[AI] Groq returned an invalid structured improvement", {
+        section: params.section,
+        hasParsedJson: Boolean(parsed),
+        hasImprovedText: Boolean(improvedText),
+        rawResponseLength: rawResponse.length,
+      });
+      throw new AIProviderError(
+        "AI_UNEXPECTED_RESPONSE",
+        "Groq returned a response that could not be safely applied. Please try again."
+      );
+    }
 
     const explanation = typeof parsed?.explanation === "string" && parsed.explanation.trim()
       ? parsed.explanation.trim()

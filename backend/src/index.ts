@@ -48,11 +48,37 @@ console.log("[AI] GROQ_MODEL configured:", groqModelConfigured);
 
 const app = express();
 const PORT = parseInt(process.env.PORT ?? "4000", 10);
-const FRONTEND_URL = process.env.FRONTEND_URL ?? "http://localhost:3000";
+const allowedOrigins = (process.env.FRONTEND_URL ?? "http://localhost:3000")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+// Default common development and production origins fallback if FRONTEND_URL is set narrowly
+if (!allowedOrigins.includes("https://resume-os-six.vercel.app")) {
+  allowedOrigins.push("https://resume-os-six.vercel.app");
+}
+if (!allowedOrigins.includes("http://localhost:3000")) {
+  allowedOrigins.push("http://localhost:3000");
+}
 
 // ── Security & middleware ─────────────────────────────────────────────────────
 app.use(helmet({ contentSecurityPolicy: false })); // CSP off — we serve raw HTML for PDF
-app.use(cors({ origin: FRONTEND_URL.split(","), credentials: true }));
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps, curl, or server-to-server)
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error(`Origin ${origin} not allowed by CORS`));
+      }
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+  })
+);
+app.options("*", cors() as unknown as express.RequestHandler);
 app.use(morgan(process.env.NODE_ENV === "production" ? "combined" : "dev"));
 app.use(compression());
 app.use(express.json({ limit: "2mb" }));
@@ -93,7 +119,7 @@ app.listen(PORT, () => {
   console.log(`  ✓ Health  → GET  http://localhost:${PORT}/api/health`);
   console.log(`  ✓ PDF     → POST http://localhost:${PORT}/api/export-pdf`);
   console.log(`  ✓ Jobs    → CRUD http://localhost:${PORT}/api/jobs`);
-  console.log(`  ✓ CORS allowed from ${FRONTEND_URL}\n`);
+  console.log(`  ✓ CORS allowed from ${allowedOrigins.join(", ")}\n`);
 });
 
 export default app;

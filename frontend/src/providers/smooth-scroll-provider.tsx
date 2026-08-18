@@ -13,7 +13,9 @@ export function SmoothScrollProvider({ children }: { children: React.ReactNode }
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       orientation: "vertical",
       gestureOrientation: "vertical",
-      smoothWheel: true,
+      // App pages use their own overflow containers. Let native trackpad wheel
+      // events reach those containers instead of having Lenis capture them on window.
+      smoothWheel: false,
       wheelMultiplier: 1,
       touchMultiplier: 2,
     });

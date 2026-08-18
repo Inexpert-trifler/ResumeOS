@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { StepWrapper } from "./StepWrapper";
+import { BuilderAiAssistant } from "./BuilderAiAssistant";
 import { BuilderState, WorkExperience } from '@/types';
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, ChevronDown, ChevronUp, Trash2, Building2, X } from "lucide-react";
@@ -52,6 +53,34 @@ function ExperienceCard({ exp, onUpdate, onDelete }: {
             </div>
           </div>
           <div className="flex gap-2">
+            <BuilderAiAssistant
+              sectionType="experience"
+              targetField="experience_bullet"
+              fieldLabel={`${exp.company || "Company"} · ${exp.role || "Role"}`}
+              currentText={[...exp.responsibilities, ...exp.achievements].join("\n")}
+              onApply={(nextText) => {
+                const parsed = nextText
+                  .split(/\n|•|·|,|;|\|/g)
+                  .map((item) => item.trim())
+                  .filter(Boolean);
+                onUpdate({
+                  ...exp,
+                  responsibilities: parsed.length > 0 ? parsed : [nextText.trim()],
+                });
+              }}
+              targetRole={exp.role}
+              targetCompany={exp.company}
+              builderContext={{
+                role: exp.role,
+                company: exp.company,
+                current: exp.current,
+                startDate: exp.startDate,
+                endDate: exp.endDate,
+                responsibilities: exp.responsibilities,
+                achievements: exp.achievements,
+              }}
+              userInstruction="Turn these responsibilities into sharp, ATS-friendly bullets without inventing achievements."
+            />
             <button onClick={() => setExpanded(!expanded)} className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground">
               {expanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
             </button>

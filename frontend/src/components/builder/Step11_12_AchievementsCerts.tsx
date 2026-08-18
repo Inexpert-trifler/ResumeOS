@@ -1,6 +1,7 @@
 "use client";
 
 import { StepWrapper } from "./StepWrapper";
+import { BuilderAiAssistant } from "./BuilderAiAssistant";
 import { BuilderState, Achievement, Certificate } from '@/types';
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, Trophy, Trash2, Award } from "lucide-react";
@@ -29,14 +30,31 @@ export function Step11_Achievements({ state, update }: Step11Props) {
               <motion.div key={a.id} layout initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }}
                 className="bg-card border border-border/50 rounded-2xl p-5 shadow-sm"
               >
-                <div className="flex justify-between items-center mb-4">
+                <div className="flex justify-between items-center mb-4 gap-3">
                   <div className="flex items-center gap-2">
                     <Trophy className="w-5 h-5 text-yellow-500" />
                     <span className="font-bold text-sm">{a.title || "Achievement"}</span>
                   </div>
-                  <button onClick={() => update({ achievements: state.achievements.filter(x => x.id !== a.id) })} className="text-muted-foreground hover:text-destructive">
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <BuilderAiAssistant
+                      sectionType="achievements"
+                      targetField="achievement_description"
+                      fieldLabel={a.title || "Achievement"}
+                      currentText={[a.title, a.description].filter(Boolean).join("\n")}
+                      onApply={(nextText) => update({ achievements: state.achievements.map(x => x.id === a.id ? { ...x, description: nextText } : x) })}
+                      targetRole={state.targetRole}
+                      builderContext={{
+                        careerGoal: state.careerGoal,
+                        achievementTitle: a.title,
+                        achievementDate: a.date,
+                      }}
+                      userInstruction="Sharpen this achievement into a concise, credible accomplishment statement."
+                      allowInsert={false}
+                    />
+                    <button onClick={() => update({ achievements: state.achievements.filter(x => x.id !== a.id) })} className="text-muted-foreground hover:text-destructive">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
                 <div className="space-y-3">
                   <div>
@@ -83,14 +101,30 @@ export function Step12_Certificates({ state, update }: Step12Props) {
               <motion.div key={c.id} layout initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }}
                 className="bg-card border border-border/50 rounded-2xl p-5 shadow-sm"
               >
-                <div className="flex justify-between items-center mb-4">
+                <div className="flex justify-between items-center mb-4 gap-3">
                   <div className="flex items-center gap-2">
                     <Award className="w-5 h-5 text-accent" />
                     <span className="font-bold text-sm">{c.name || "Certificate"}</span>
                   </div>
-                  <button onClick={() => update({ certificates: state.certificates.filter(x => x.id !== c.id) })} className="text-muted-foreground hover:text-destructive">
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <BuilderAiAssistant
+                      sectionType="certificates"
+                      targetField="certificate_entry"
+                      fieldLabel={c.name || "Certificate"}
+                      currentText={[c.name, c.issuer, c.credentialId].filter(Boolean).join(" · ")}
+                      onApply={(nextText) => update({ certificates: state.certificates.map(x => x.id === c.id ? { ...x, name: nextText } : x) })}
+                      builderContext={{
+                        certificateName: c.name,
+                        issuer: c.issuer,
+                        credentialId: c.credentialId,
+                      }}
+                      userInstruction="Clean up this certificate entry so it reads clearly and professionally."
+                      allowInsert={false}
+                    />
+                    <button onClick={() => update({ certificates: state.certificates.filter(x => x.id !== c.id) })} className="text-muted-foreground hover:text-destructive">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>

@@ -40,6 +40,14 @@ export function createAiImprovementCacheKey(request: AiImprovementRequest): stri
       targetField: request.targetField,
       originalText: request.originalText,
       context: request.context ?? null,
+      targetRole: request.targetRole ?? null,
+      targetCompany: request.targetCompany ?? null,
+      fieldLabel: request.fieldLabel ?? null,
+      userInstruction: request.userInstruction ?? null,
+      tone: request.tone ?? null,
+      length: request.length ?? null,
+      builderContext: request.builderContext ?? null,
+      resumeContext: request.resumeContext ?? null,
     })
   )}`;
 }

@@ -2,6 +2,7 @@
 
 import { useState, KeyboardEvent } from "react";
 import { StepWrapper } from "./StepWrapper";
+import { BuilderAiAssistant } from "./BuilderAiAssistant";
 import { BuilderState, Skill } from '@/types';
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Plus } from "lucide-react";
@@ -23,6 +24,7 @@ interface Step07Props {
 
 export function Step07_Skills({ state, update, validationError }: Step07Props) {
   const [input, setInput] = useState("");
+  const skillListText = state.skills.map((skill) => skill.name).join(", ");
 
   const addSkill = (name: string) => {
     const cleaned = name.trim();
@@ -49,6 +51,40 @@ export function Step07_Skills({ state, update, validationError }: Step07Props) {
       badge="Step 7"
       title="What are your skills?"
       description="Add skills by typing and pressing Enter. Include both technical and tools."
+      actions={
+        <BuilderAiAssistant
+          sectionType="skills"
+          targetField="skills_list"
+          fieldLabel="Skills List"
+          currentText={skillListText}
+          onApply={(nextText) => {
+            const parsed = nextText
+              .split(/\n|•|·|,|;|\|/g)
+              .map((item) => item.trim())
+              .filter(Boolean);
+            const existing = new Set<string>();
+            update({
+              skills: parsed
+                .filter((item) => {
+                  const key = item.toLowerCase();
+                  if (existing.has(key)) return false;
+                  existing.add(key);
+                  return true;
+                })
+                .map((name, index) => ({ id: state.skills[index]?.id ?? `${Date.now()}-${index}`, name })),
+            });
+          }}
+          targetRole={state.targetRole}
+          builderContext={{
+            careerGoal: state.careerGoal,
+            experienceLevel: state.experienceLevel,
+            currentSkillCount: state.skills.length,
+            skills: state.skills.map((skill) => skill.name),
+          }}
+          userInstruction="Normalize the skill names, remove duplicates, and keep the list ATS-friendly."
+          allowInsert={false}
+        />
+      }
     >
       <div className="max-w-2xl space-y-6">
         {/* Tag input */}

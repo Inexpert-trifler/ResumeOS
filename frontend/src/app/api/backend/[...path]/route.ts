@@ -10,6 +10,7 @@ const BACKEND_API_URL = (
 const HOP_BY_HOP_HEADERS = new Set([
   "connection",
   "content-length",
+  "content-encoding",
   "keep-alive",
   "proxy-authenticate",
   "proxy-authorization",
@@ -20,6 +21,23 @@ const HOP_BY_HOP_HEADERS = new Set([
   "accept-encoding",
   "host",
 ]);
+
+const RESPONSE_HEADERS_TO_DROP = new Set([
+  "content-length",
+  "content-encoding",
+  "transfer-encoding",
+  "connection",
+  "keep-alive",
+  "proxy-authenticate",
+  "proxy-authorization",
+  "te",
+  "trailer",
+  "upgrade",
+]);
+
+function isBinaryContentType(contentType: string): boolean {
+  return /^(application\/pdf|image\/|audio\/|video\/|application\/octet-stream|font\/|application\/zip)/i.test(contentType);
+}
 
 async function proxyRequest(request: Request, pathSegments: string[]) {
   const path = pathSegments
@@ -52,18 +70,46 @@ async function proxyRequest(request: Request, pathSegments: string[]) {
 
     const responseHeaders = new Headers();
     for (const [key, value] of backendResponse.headers.entries()) {
-      if (!HOP_BY_HOP_HEADERS.has(key.toLowerCase())) {
+      if (!RESPONSE_HEADERS_TO_DROP.has(key.toLowerCase())) {
         responseHeaders.set(key, value);
       }
     }
-    responseHeaders.set("Cache-Control", "no-store");
+    responseHeaders.set("Cache-Control", "no-store, no-transform");
+    responseHeaders.set("Content-Encoding", "identity");
+    responseHeaders.set("Vary", "Origin");
 
     if (backendResponse.status === 204) {
       return new NextResponse(null, { status: 204, headers: responseHeaders });
     }
 
-    const responseBody = await backendResponse.arrayBuffer();
-    return new NextResponse(responseBody, {
+    const contentType = backendResponse.headers.get("content-type") || "";
+    if (isBinaryContentType(contentType)) {
+      const responseBody = await backendResponse.arrayBuffer();
+      const binaryHeaders = new Headers(responseHeaders);
+      binaryHeaders.set("Content-Type", contentType);
+      return new NextResponse(responseBody, {
+        status: backendResponse.status,
+        headers: binaryHeaders,
+      });
+    }
+
+    const responseText = await backendResponse.text();
+
+    if (contentType.includes("application/json") || responseText.trim().startsWith("{") || responseText.trim().startsWith("[")) {
+      try {
+        const parsed = JSON.parse(responseText);
+        const jsonHeaders = new Headers(responseHeaders);
+        jsonHeaders.delete("content-type");
+        return NextResponse.json(parsed, {
+          status: backendResponse.status,
+          headers: jsonHeaders,
+        });
+      } catch {
+        // Fall through to raw text below when the payload is not valid JSON.
+      }
+    }
+
+    return new NextResponse(responseText, {
       status: backendResponse.status,
       headers: responseHeaders,
     });

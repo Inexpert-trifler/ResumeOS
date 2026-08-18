@@ -6,9 +6,14 @@ export interface ResumeImprovementParams {
   section: string;
   content: string;
   targetRole?: string;
+  targetCompany?: string;
   jobDescription?: string;
   fullResumeContext?: Record<string, unknown> | null;
   userInstruction?: string;
+  fieldLabel?: string;
+  tone?: string;
+  length?: string;
+  builderContext?: Record<string, unknown> | null;
 }
 
 export interface StructuredImprovementChange {
@@ -23,6 +28,8 @@ export interface StructuredImprovementResult {
   reasoning: string[];
   changes: StructuredImprovementChange[];
   warnings: string[];
+  needsMoreInfo?: boolean;
+  followUpQuestions?: string[];
   improvement?: {
     original: string;
     improved: string;
@@ -230,14 +237,19 @@ export class AIService {
    * Section / Bullet point improvement (Phase 2A)
    */
   static async improveResumeContent(params: ResumeImprovementParams): Promise<StructuredImprovementResult> {
+    const toneChoice = params.tone || "professional";
+    const lengthChoice = params.length || "balanced";
+    const fieldLabel = params.fieldLabel || params.section;
     const systemPrompt = `You are ResumeOS AI — an elite resume editor and ATS optimization engine.
-Your task is to improve a user's resume content.
+Your task is to improve a user's resume or builder content.
 
 STRICT NON-FABRICATION CONSTRAINTS:
 1. NEVER fabricate facts, employment history, degrees, certifications, companies, projects, tools, or metrics.
 2. If metric numbers or impact percentages are missing in the original text, DO NOT invent fake numbers. Instead, flag missing metrics in the "warnings" array.
 3. Use strong action verbs, punchy professional phrasing, and ATS keyword alignment.
-4. Output MUST be ONLY valid JSON matching this exact structure:
+4. Tone: ${toneChoice}. Length: ${lengthChoice}.
+5. If the content is too thin to improve safely, set "needsMoreInfo" to true and ask concise follow-up questions instead of fabricating content.
+6. Output MUST be ONLY valid JSON matching this exact structure:
 {
   "improvedText": "<improved content version>",
   "explanation": "<brief 1-2 sentence overview of improvements>",
@@ -251,20 +263,33 @@ STRICT NON-FABRICATION CONSTRAINTS:
   ],
   "warnings": [
     "<warning about unverified claims or missing metrics if applicable>"
-  ]
+  ],
+  "needsMoreInfo": false,
+  "followUpQuestions": ["<optional question 1>", "<optional question 2>"]
 }`;
 
     const resumeContextStr = params.fullResumeContext
       ? JSON.stringify(params.fullResumeContext, null, 2)
       : "Not provided";
 
+    const builderContextStr = params.builderContext
+      ? JSON.stringify(params.builderContext, null, 2)
+      : "Not provided";
+
     const userPrompt = `Section: ${params.section}
+Field Label: ${fieldLabel}
 Target Role: ${params.targetRole ?? "Not specified"}
+Target Company: ${params.targetCompany ?? "Not specified"}
 Job Description: ${params.jobDescription ?? "Not specified"}
 User Specific Instruction: ${params.userInstruction ?? "Improve clarity, action verbs, and ATS alignment."}
+Tone: ${toneChoice}
+Length: ${lengthChoice}
 
 Full Resume Context:
 ${resumeContextStr}
+
+Builder Context:
+${builderContextStr}
 
 Original Content to Improve:
 "${params.content}"
@@ -302,6 +327,10 @@ Return ONLY valid JSON matching the specified schema.`;
     });
 
     const warnings = Array.isArray(parsed?.warnings) ? parsed.warnings.map(String) : [];
+    const needsMoreInfo = Boolean(parsed?.needsMoreInfo);
+    const followUpQuestions = Array.isArray(parsed?.followUpQuestions)
+      ? parsed.followUpQuestions.map(String).filter(Boolean)
+      : [];
 
     return {
       success: true,
@@ -310,6 +339,8 @@ Return ONLY valid JSON matching the specified schema.`;
       reasoning,
       changes: changes.length > 0 ? changes : [{ type: "style", description: "Phrasing optimization" }],
       warnings,
+      needsMoreInfo,
+      followUpQuestions,
       improvement: {
         original: params.content,
         improved: improvedText,

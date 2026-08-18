@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { StepWrapper } from "./StepWrapper";
+import { BuilderAiAssistant } from "./BuilderAiAssistant";
 import { BuilderState, Project } from '@/types';
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, ChevronDown, ChevronUp, Trash2, GitBranch, Globe, Tag, X as LucideX } from "lucide-react";
@@ -67,6 +68,23 @@ function ProjectCard({
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <BuilderAiAssistant
+            sectionType="projects"
+            targetField="project_description"
+            fieldLabel={`Project: ${project.name || "Untitled Project"}`}
+            currentText={[project.description, project.keyFeatures.join(". "), project.achievements].filter(Boolean).join("\n\n")}
+            onApply={(nextText) => onUpdate({ ...project, description: nextText })}
+            targetRole=""
+            builderContext={{
+              projectName: project.name,
+              projectRole: project.role,
+              techStack: project.techStack,
+              keyFeatures: project.keyFeatures,
+              achievements: project.achievements,
+              duration: project.duration,
+            }}
+            userInstruction="Rewrite this project description to be concise, impact-focused, and truthful."
+          />
           <button onClick={() => setExpanded(!expanded)} className="p-1.5 rounded-lg hover:bg-muted transition-colors text-muted-foreground">
             {expanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
           </button>

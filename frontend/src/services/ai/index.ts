@@ -1,7 +1,16 @@
 import { createAiImprovementCacheKey, readAiImprovementCache, writeAiImprovementCache } from "./cache";
-import { AiImprovementRequestSchema, AiImprovementResponseSchema, type AiImprovementRequest, type AiImprovementResponse } from "./types";
+import { AiImprovementRequestSchema, AiImprovementResponseSchema } from "./types";
+import type { AiImprovementRequest, AiImprovementResponse } from "./types";
 
-export type { AiImprovementRequest, AiImprovementResponse } from "./types";
+export type {
+  AiImprovementRequest,
+  AiImprovementResponse,
+  AiImprovementTone,
+  AiImprovementLength,
+  AiImprovementSectionType,
+  AiImprovementTargetField,
+} from "./types";
+export { aiImprovementTones, aiImprovementLengths } from "./types";
 
 export interface RequestAiImprovementOptions {
   signal?: AbortSignal;

@@ -152,7 +152,7 @@ export function BuilderWorkspace() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col overflow-x-hidden">
       <DashboardTopNav />
       <AnimatePresence mode="wait">
         {!started && (
@@ -163,13 +163,13 @@ export function BuilderWorkspace() {
       </AnimatePresence>
 
       {started && (
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col min-h-0">
           <BuilderProgressBar
             currentStep={state.currentStep}
             totalSteps={TOTAL_STEPS}
             lastSaved={autoSaved}
           />
-          <div className="flex-1 max-w-7xl mx-auto w-full px-4 py-10 flex gap-10">
+          <div className="flex-1 max-w-7xl mx-auto w-full px-4 py-10 pb-24 flex gap-10 items-start">
             <main className="flex-1 min-w-0">
               <AnimatePresence mode="wait">
                 <div key={state.currentStep}>

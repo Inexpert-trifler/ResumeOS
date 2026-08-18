@@ -16,7 +16,7 @@ const FEATURES = [
 
 export function BuilderWelcomeScreen({ onStart }: BuilderWelcomeScreenProps) {
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center px-4">
+    <div className="min-h-[calc(100vh-3.5rem)] bg-background flex items-center justify-center px-4 py-10">
       <div className="max-w-lg w-full text-center">
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}

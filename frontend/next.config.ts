@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-
+  compress: false,
   allowedDevOrigins: ["192.168.29.219"],
   // Exclude @base-ui/react from the server bundle.
   // It calls useContext during module initialization which crashes Turbopack SSR.
@@ -17,4 +17,3 @@ const nextConfig: NextConfig = {
 };
 
 export default nextConfig;
-

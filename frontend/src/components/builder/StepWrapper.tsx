@@ -8,6 +8,7 @@ interface StepWrapperProps {
   description?: string;
   children: ReactNode;
   badge?: string;
+  actions?: ReactNode;
 }
 
 const variants = {
@@ -16,7 +17,7 @@ const variants = {
   exit: { opacity: 0, x: -30 },
 };
 
-export function StepWrapper({ title, description, children, badge }: StepWrapperProps) {
+export function StepWrapper({ title, description, children, badge, actions }: StepWrapperProps) {
   return (
     <motion.div
       variants={variants}
@@ -30,10 +31,20 @@ export function StepWrapper({ title, description, children, badge }: StepWrapper
           {badge}
         </div>
       )}
-      <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-3">{title}</h2>
-      {description && (
-        <p className="text-muted-foreground text-lg mb-10 max-w-xl">{description}</p>
-      )}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div className="min-w-0">
+          <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-3">{title}</h2>
+          {description && (
+            <p className="text-muted-foreground text-lg max-w-xl">{description}</p>
+          )}
+        </div>
+        {actions && (
+          <div className="shrink-0">
+            {actions}
+          </div>
+        )}
+      </div>
+      <div className="mb-10" />
       <div>{children}</div>
     </motion.div>
   );

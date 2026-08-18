@@ -1,6 +1,7 @@
 "use client";
 
 import { StepWrapper } from "./StepWrapper";
+import { BuilderAiAssistant } from "./BuilderAiAssistant";
 import { BuilderState } from '@/types';
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -42,6 +43,26 @@ export function Step06_Summary({ state, update }: Step06Props) {
       badge="Step 6"
       title="Write your professional summary"
       description="This is the first thing recruiters read. Make it count."
+      actions={
+        <BuilderAiAssistant
+          sectionType="summary"
+          targetField="summary"
+          fieldLabel="Professional Summary"
+          currentText={state.summary}
+          onApply={(nextText) => update({ summary: nextText })}
+          targetRole={state.targetRole}
+          builderContext={{
+            careerGoal: state.careerGoal,
+            experienceLevel: state.experienceLevel,
+            targetRole: state.targetRole,
+            skills: state.skills.map((skill) => skill.name),
+            experienceCount: state.experience.length,
+            projectCount: state.projects.length,
+          }}
+          userInstruction="Create a concise, recruiter-ready summary that reflects the user's current goals and experience."
+          allowInsert={false}
+        />
+      }
     >
       <div className="max-w-2xl space-y-5">
         {/* Main Textarea */}

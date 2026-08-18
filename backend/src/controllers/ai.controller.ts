@@ -60,7 +60,22 @@ export async function testGroq(req: AuthenticatedRequest, res: Response): Promis
 export async function improveContent(req: AuthenticatedRequest, res: Response): Promise<void> {
   try {
     const userId = req.currentUser!.id;
-    const { section, content, targetRole, jobDescription, resumeId, originalText, sectionType, targetField, userInstruction } = req.body;
+    const {
+      section,
+      content,
+      targetRole,
+      targetCompany,
+      jobDescription,
+      resumeId,
+      originalText,
+      sectionType,
+      targetField,
+      userInstruction,
+      fieldLabel,
+      tone,
+      length,
+      builderContext,
+    } = req.body;
 
     const textToImprove = typeof originalText === "string" && originalText.trim()
       ? originalText.trim()
@@ -93,9 +108,14 @@ export async function improveContent(req: AuthenticatedRequest, res: Response): 
       section: section || sectionType || "general",
       content: textToImprove,
       targetRole,
+      targetCompany,
       jobDescription,
       fullResumeContext,
       userInstruction,
+      fieldLabel,
+      tone,
+      length,
+      builderContext,
     });
 
     if (resumeId && typeof resumeId === "string") {
@@ -121,6 +141,8 @@ export async function improveContent(req: AuthenticatedRequest, res: Response): 
       warnings: result.warnings,
       confidence: 0.95,
       sectionType: sectionType || section || "summary",
+      needsMoreInfo: result.needsMoreInfo,
+      followUpQuestions: result.followUpQuestions,
       improvement: result.improvement,
     });
   } catch (error) {

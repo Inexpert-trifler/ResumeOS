@@ -29,6 +29,12 @@ function sectionGuidance(request: AiImprovementRequest): string {
       return "Improve the skills list by normalizing names, removing duplicates, and ordering the same skills more strategically without inventing new skills.";
     case "certificate_entry":
       return "Improve the certificate entry by making the formatting cleaner and more readable without inventing credentials or issuers.";
+    case "career_goal":
+      return "Refine the career goal into a concise, recruiter-friendly statement without changing the user's intent.";
+    case "target_role":
+      return "Refine the target role wording so it is clear, specific, and aligned to the user's actual goals.";
+    case "target_company":
+      return "Refine the target company wording so it is concise and specific without inventing preferences or relationships.";
     default:
       return "Improve the provided text safely and professionally.";
   }
@@ -40,6 +46,14 @@ export function buildAiImprovementMessages(request: AiImprovementRequest) {
     targetField: request.targetField,
     originalText: request.originalText,
     context: request.context ?? {},
+    targetRole: request.targetRole ?? "",
+    targetCompany: request.targetCompany ?? "",
+    fieldLabel: request.fieldLabel ?? "",
+    userInstruction: request.userInstruction ?? "",
+    tone: request.tone ?? "professional",
+    length: request.length ?? "balanced",
+    builderContext: request.builderContext ?? request.context?.builderContext ?? {},
+    resumeContext: request.resumeContext ?? {},
     instructions: sectionGuidance(request),
   };
 
@@ -54,4 +68,3 @@ export function buildAiImprovementMessages(request: AiImprovementRequest) {
     },
   ];
 }
-

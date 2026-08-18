@@ -67,11 +67,30 @@ app.use(
   cors({
     origin: (origin, callback) => {
       // Allow requests with no origin (like mobile apps, curl, or server-to-server)
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error(`Origin ${origin} not allowed by CORS`));
+      if (!origin) {
+        return callback(null, true);
       }
+
+      // Check explicit allowlist
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      // Check Vercel preview deployment URLs pattern (e.g., https://resume-*.vercel.app)
+      try {
+        const parsed = new URL(origin);
+        if (
+          parsed.protocol === "https:" &&
+          (/^resume-.*\.vercel\.app$/.test(parsed.hostname) ||
+            parsed.hostname.endsWith(".vercel.app"))
+        ) {
+          return callback(null, true);
+        }
+      } catch {
+        // invalid URL format
+      }
+
+      return callback(new Error(`Origin ${origin} not allowed by CORS`));
     },
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],

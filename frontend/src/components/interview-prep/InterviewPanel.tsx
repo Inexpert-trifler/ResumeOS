@@ -1,79 +1,71 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Sparkles, CheckCircle2, Clock } from "lucide-react";
-
-const STATS = [
-  { label: "Questions Bank", value: "2,400+" },
-  { label: "Companies Covered", value: "120+" },
-  { label: "Avg Offer Rate", value: "3.2x" },
-  { label: "Mock Sessions", value: "50k+" },
-];
-
-const TIMELINE = [
-  { week: "Week 1", focus: "DSA Foundations", done: true },
-  { week: "Week 2", focus: "System Design Basics", done: true },
-  { week: "Week 3", focus: "Behavioral + STAR", done: false },
-  { week: "Week 4", focus: "Full Mock Interviews", done: false },
-];
+import { Sparkles, CheckCircle2, Clock, Brain } from "lucide-react";
+import { useInterviewStore } from "@/stores/useInterviewStore";
 
 const TIPS = [
-  "Use the STAR method for every behavioral question",
-  "Always clarify requirements before coding",
-  "Think aloud — interviewers value your thought process",
-  "Ask smart questions at the end of every round",
+  "Use the STAR method: Situation, Task, Action, Result",
+  "Quantify your results with metrics (e.g. 30% latency reduction)",
+  "Think aloud — interviewers evaluate your problem-solving process",
+  "Ask clarifying questions before proposing a technical design",
 ];
 
 export function InterviewPanel() {
+  const { activeSession, questions, currentQuestionIndex } = useInterviewStore();
+  const currentQ = questions[currentQuestionIndex];
+
   return (
     <aside className="w-96 shrink-0 border-l border-border/50 bg-background/50 h-full flex flex-col">
       <div className="h-16 flex items-center px-6 border-b border-border/50 shrink-0 bg-background/80 backdrop-blur-md">
-        <h2 className="font-semibold text-sm">Prep Insights</h2>
+        <h2 className="font-semibold text-sm flex items-center gap-2">
+          <Brain className="w-4 h-4 text-accent" />
+          <span>Prep Inspector</span>
+        </h2>
       </div>
 
       <div className="flex-1 overflow-y-auto no-scrollbar p-6 space-y-8">
 
-        {/* Stats */}
-        <div>
-          <h3 className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60 mb-4">Platform Stats</h3>
-          <div className="grid grid-cols-2 gap-3">
-            {STATS.map((s, i) => (
-              <motion.div key={i} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }}
-                className="p-4 rounded-2xl border border-border/50 bg-card text-center">
-                <p className="text-xl font-bold text-accent">{s.value}</p>
-                <p className="text-[10px] text-muted-foreground mt-0.5">{s.label}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-
-        {/* 4-Week Timeline */}
-        <div>
-          <h3 className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60 mb-4">Prep Timeline</h3>
-          <div className="space-y-3">
-            {TIMELINE.map((item, i) => (
-              <motion.div key={i} initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.1 }}
-                className={`flex items-center gap-3 p-3 rounded-xl border transition-colors ${item.done ? "border-accent/30 bg-accent/5" : "border-border/50 bg-card"}`}>
-                <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${item.done ? "bg-accent" : "bg-muted"}`}>
-                  {item.done
-                    ? <CheckCircle2 className="w-3.5 h-3.5 text-white" />
-                    : <Clock className="w-3.5 h-3.5 text-muted-foreground" />}
+        {/* Current Question Inspector */}
+        {currentQ ? (
+          <div>
+            <h3 className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60 mb-3">Active Question Info</h3>
+            <div className="p-5 rounded-2xl border border-border/50 bg-card space-y-3 shadow-sm">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-bold text-accent uppercase">{currentQ.category}</span>
+                <span className="text-muted-foreground capitalize">{currentQ.difficulty}</span>
+              </div>
+              <p className="font-semibold text-xs text-foreground">{currentQ.question}</p>
+              {currentQ.keyPoints && currentQ.keyPoints.length > 0 && (
+                <div className="pt-2 border-t border-border/30">
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase mb-1">Key Points to Mention:</p>
+                  <ul className="space-y-1">
+                    {currentQ.keyPoints.map((kp, i) => (
+                      <li key={i} className="text-xs text-muted-foreground flex items-center gap-1.5">
+                        <CheckCircle2 className="w-3 h-3 text-emerald-500 shrink-0" />
+                        <span>{kp}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-                <div>
-                  <p className="text-xs font-semibold text-muted-foreground">{item.week}</p>
-                  <p className="text-sm font-medium">{item.focus}</p>
-                </div>
-              </motion.div>
-            ))}
+              )}
+            </div>
           </div>
-        </div>
+        ) : (
+          <div>
+            <h3 className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60 mb-3">Session Guidance</h3>
+            <div className="p-5 rounded-2xl border border-border/50 bg-card space-y-2 text-xs text-muted-foreground">
+              <p className="font-semibold text-foreground">Ready to Practice</p>
+              <p>Configure your target role and difficulty on the left to start a live mock interview session.</p>
+            </div>
+          </div>
+        )}
 
-        {/* Tips */}
         <div>
-          <h3 className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60 mb-4">Pro Tips</h3>
+          <h3 className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60 mb-3">Pro Tips</h3>
           <div className="space-y-2">
             {TIPS.map((tip, i) => (
-              <div key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
+              <div key={i} className="flex items-start gap-2 text-xs text-muted-foreground">
                 <span className="w-1.5 h-1.5 rounded-full bg-accent mt-1.5 shrink-0" />
                 {tip}
               </div>
@@ -84,10 +76,10 @@ export function InterviewPanel() {
         <div className="p-4 rounded-2xl bg-accent/5 border border-accent/20">
           <div className="flex items-center gap-2 mb-2 text-accent">
             <Sparkles className="w-4 h-4" />
-            <span className="text-xs font-bold">Voice Analysis</span>
+            <span className="text-xs font-bold">STAR Evaluation</span>
           </div>
           <p className="text-xs text-muted-foreground leading-relaxed">
-            Upcoming: real-time speech analysis detects filler words, pacing, and confidence signals.
+            Our AI automatically parses your answers for Situation, Task, Action, and Result structure — identifying missing components instantly.
           </p>
         </div>
       </div>

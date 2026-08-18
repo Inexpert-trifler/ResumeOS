@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { PageTransition } from "@/components/shared/PageTransition";
 import { GitHubSidebar } from "@/components/github/GitHubSidebar";
 import { GitHubWorkspace } from "@/components/github/GitHubWorkspace";

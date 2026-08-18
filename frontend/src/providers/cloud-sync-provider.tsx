@@ -4,6 +4,16 @@ import { useAuth, useUser } from "@clerk/nextjs";
 import { useCallback, useEffect, useRef } from "react";
 import { readResumeDraft, saveResumeDraft, type ResumeDraft } from "@/lib/resume-draft";
 import { ResumeService } from "@/services/ResumeService";
+import { CoachService } from "@/services/CoachService";
+import { AnalysisService } from "@/services/AnalysisService";
+import { CoverLetterService } from "@/services/CoverLetterService";
+import { InterviewService } from "@/services/InterviewService";
+import { RoadmapService } from "@/services/RoadmapService";
+import { SettingsService } from "@/services/SettingsService";
+import { GitHubService } from "@/services/GitHubService";
+import { LinkedInService } from "@/services/LinkedInService";
+import { DashboardService } from "@/services/DashboardService";
+import { configureAiTokenProvider } from "@/services/ai";
 import { useResumeStore } from "@/stores/useResumeStore";
 
 const DRAFT_EVENT = "resumeos:sprint-1-draft:updated";
@@ -65,7 +75,29 @@ export function CloudSyncProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     ResumeService.configureTokenProvider(async () => getToken());
-    return () => ResumeService.configureTokenProvider(null);
+    CoachService.configureTokenProvider(async () => getToken());
+    AnalysisService.configureTokenProvider(async () => getToken());
+    CoverLetterService.configureTokenProvider(async () => getToken());
+    InterviewService.configureTokenProvider(async () => getToken());
+    RoadmapService.configureTokenProvider(async () => getToken());
+    SettingsService.configureTokenProvider(async () => getToken());
+    GitHubService.configureTokenProvider(async () => getToken());
+    LinkedInService.configureTokenProvider(async () => getToken());
+    DashboardService.configureTokenProvider(async () => getToken());
+    configureAiTokenProvider(async () => getToken());
+    return () => {
+      ResumeService.configureTokenProvider(null);
+      CoachService.configureTokenProvider(null);
+      AnalysisService.configureTokenProvider(null);
+      CoverLetterService.configureTokenProvider(null);
+      InterviewService.configureTokenProvider(null);
+      RoadmapService.configureTokenProvider(null);
+      SettingsService.configureTokenProvider(null);
+      GitHubService.configureTokenProvider(null);
+      LinkedInService.configureTokenProvider(null);
+      DashboardService.configureTokenProvider(null);
+      configureAiTokenProvider(null);
+    };
   }, [getToken]);
 
   useEffect(() => {

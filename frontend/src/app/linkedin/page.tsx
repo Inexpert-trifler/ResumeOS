@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { PageTransition } from "@/components/shared/PageTransition";
 import { LinkedInSidebar } from "@/components/linkedin/LinkedInSidebar";
 import { LinkedInWorkspace } from "@/components/linkedin/LinkedInWorkspace";

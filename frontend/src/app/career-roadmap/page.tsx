@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { PageTransition } from "@/components/shared/PageTransition";
 import { CareerRoadmapSidebar } from "@/components/career-roadmap/CareerRoadmapSidebar";
 import { CareerRoadmapWorkspace } from "@/components/career-roadmap/CareerRoadmapWorkspace";

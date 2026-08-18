@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { Container } from "@/components/shared/Container";
 import { ReadingProgress } from "@/components/academy/ReadingProgress";
 import { AcademySidebar } from "@/components/academy/AcademySidebar";
@@ -12,11 +14,6 @@ import { RoleBasedGuideSection } from "@/components/academy/RoleBasedGuideSectio
 import { ResumeExamplesSection } from "@/components/academy/ResumeExamplesSection";
 import { RecruiterSimulatorSection } from "@/components/academy/RecruiterSimulatorSection";
 import { AcademyFaqSection } from "@/components/academy/AcademyFaqSection";
-
-export const metadata = {
-  title: "Resume Academy | AI Resume OS",
-  description: "Learn how to build a winning resume with our interactive guide.",
-};
 
 export default function AcademyPage() {
   return (

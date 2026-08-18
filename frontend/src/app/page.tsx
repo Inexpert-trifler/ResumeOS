@@ -1,36 +1,38 @@
-import dynamic from "next/dynamic";
+export const dynamic = 'force-dynamic';
+
+import dynamicNext from "next/dynamic";
 import { HeroSection } from "@/components/sections/HeroSection";
 import { TrustedBySection } from "@/components/sections/TrustedBySection";
 
 // Lazy-load below-the-fold sections to speed up initial paint
-const ProblemSection = dynamic(() =>
+const ProblemSection = dynamicNext(() =>
   import("@/components/sections/ProblemSection").then((m) => m.ProblemSection)
 );
-const SolutionSection = dynamic(() =>
+const SolutionSection = dynamicNext(() =>
   import("@/components/sections/SolutionSection").then((m) => m.SolutionSection)
 );
-const WorkflowSection = dynamic(() =>
+const WorkflowSection = dynamicNext(() =>
   import("@/components/sections/WorkflowSection").then((m) => m.WorkflowSection)
 );
-const FeaturesSection = dynamic(() =>
+const FeaturesSection = dynamicNext(() =>
   import("@/components/sections/FeaturesSection").then((m) => m.FeaturesSection)
 );
-const ComparisonSection = dynamic(() =>
+const ComparisonSection = dynamicNext(() =>
   import("@/components/sections/ComparisonSection").then((m) => m.ComparisonSection)
 );
-const BeforeAfterSection = dynamic(() =>
+const BeforeAfterSection = dynamicNext(() =>
   import("@/components/sections/BeforeAfterSection").then((m) => m.BeforeAfterSection)
 );
-const StatisticsSection = dynamic(() =>
+const StatisticsSection = dynamicNext(() =>
   import("@/components/sections/StatisticsSection").then((m) => m.StatisticsSection)
 );
-const TestimonialsSection = dynamic(() =>
+const TestimonialsSection = dynamicNext(() =>
   import("@/components/sections/TestimonialsSection").then((m) => m.TestimonialsSection)
 );
-const FaqSection = dynamic(() =>
+const FaqSection = dynamicNext(() =>
   import("@/components/sections/FaqSection").then((m) => m.FaqSection)
 );
-const FinalCtaSection = dynamic(() =>
+const FinalCtaSection = dynamicNext(() =>
   import("@/components/sections/FinalCtaSection").then((m) => m.FinalCtaSection)
 );
 

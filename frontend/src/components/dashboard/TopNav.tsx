@@ -7,7 +7,7 @@ import { UserButton, useUser } from "@clerk/nextjs";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Moon, Sun, FileText, User } from "lucide-react";
-import { useTheme } from "next-themes";
+import { useTheme } from "@/providers/theme-provider";
 import { motion } from "framer-motion";
 
 // ─── Nav links ────────────────────────────────────────────────────────────────

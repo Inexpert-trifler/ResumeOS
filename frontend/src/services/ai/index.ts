@@ -8,6 +8,12 @@ export interface RequestAiImprovementOptions {
   timeoutMs?: number;
 }
 
+let tokenProvider: (() => Promise<string | null>) | null = null;
+
+export function configureAiTokenProvider(provider: (() => Promise<string | null>) | null) {
+  tokenProvider = provider;
+}
+
 function timeoutMessage(timeoutMs: number): string {
   return `The request timed out after ${Math.round(timeoutMs / 1000)} seconds.`;
 }
@@ -38,10 +44,13 @@ export async function requestAiImprovement(
   }
 
   try {
+    const token = await tokenProvider?.();
+
     const response = await fetch("/api/ai/improve", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
       body: JSON.stringify(normalizedRequest),
       signal: controller.signal,
@@ -49,7 +58,7 @@ export async function requestAiImprovement(
 
     const payload = await response.json().catch(() => null);
     if (!response.ok) {
-      const rawMessage = payload?.error || payload?.message || "We couldn't generate an AI suggestion right now.";
+      const rawMessage = payload?.error?.message || payload?.error || payload?.message || "We couldn't generate an AI suggestion right now.";
       const friendlyMessage =
         response.status === 429 || /rate limit/i.test(rawMessage)
           ? "Groq is temporarily rate-limited. Please try again in a moment."
@@ -72,7 +81,7 @@ export async function requestAiImprovement(
       throw new Error("The request was cancelled.");
     }
 
-    throw new Error(error instanceof Error ? `Invalid AI response: ${error.message}` : "Invalid AI response.");
+    throw new Error(error instanceof Error ? error.message : "Invalid AI response.");
   } finally {
     globalThis.clearTimeout(timer);
     if (options.signal) {

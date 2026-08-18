@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { PageTransition } from "@/components/shared/PageTransition";
 import { CoverLetterSidebar } from "@/components/cover-letter/CoverLetterSidebar";
 import { CoverLetterWorkspace } from "@/components/cover-letter/CoverLetterWorkspace";

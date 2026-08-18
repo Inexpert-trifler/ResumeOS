@@ -16,6 +16,15 @@ import exportPdfRouter from "./routes/exportPdf";
 import resumesRouter from "./routes/resumes";
 import jobsRouter from "./routes/jobs";
 import analysisRouter from "./routes/analysis";
+import aiRouter from "./routes/ai";
+import coachRouter from "./routes/coach";
+import coverLettersRouter from "./routes/cover-letters";
+import interviewsRouter from "./routes/interviews";
+import roadmapsRouter from "./routes/roadmaps";
+import settingsRouter from "./routes/settings";
+import githubRouter from "./routes/github";
+import linkedinRouter from "./routes/linkedin";
+import dashboardRouter from "./routes/dashboard";
 
 const url = process.env.DATABASE_URL;
 // Safe diagnostic — never prints the actual URL value
@@ -31,6 +40,11 @@ const clerkSecretKeyConfigured = Boolean(process.env.CLERK_SECRET_KEY);
 const clerkPublishableKeyConfigured = Boolean(process.env.CLERK_PUBLISHABLE_KEY);
 console.log("[clerk] secret key configured:", clerkSecretKeyConfigured);
 console.log("[clerk] publishable key configured:", clerkPublishableKeyConfigured);
+
+const groqApiKeyConfigured = Boolean(process.env.GROQ_API_KEY && process.env.GROQ_API_KEY.trim().length > 0);
+const groqModelConfigured = Boolean(process.env.GROQ_MODEL && process.env.GROQ_MODEL.trim().length > 0);
+console.log("[AI] GROQ_API_KEY configured:", groqApiKeyConfigured);
+console.log("[AI] GROQ_MODEL configured:", groqModelConfigured);
 
 const app = express();
 const PORT = parseInt(process.env.PORT ?? "4000", 10);
@@ -51,6 +65,15 @@ app.use("/api/export-pdf", exportPdfRouter);
 app.use("/api/resumes", resumesRouter);
 app.use("/api/jobs", jobsRouter);
 app.use("/api/analysis", analysisRouter);
+app.use("/api/ai", aiRouter);
+app.use("/api/coach", coachRouter);
+app.use("/api/cover-letters", coverLettersRouter);
+app.use("/api/interviews", interviewsRouter);
+app.use("/api/roadmaps", roadmapsRouter);
+app.use("/api/settings", settingsRouter);
+app.use("/api/github", githubRouter);
+app.use("/api/linkedin", linkedinRouter);
+app.use("/api/dashboard", dashboardRouter);
 
 // 404 fallback
 app.use((_req, res) => {

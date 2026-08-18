@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { PageTransition } from "@/components/shared/PageTransition";
 import { HelpCircle, BookOpen, MessageCircle, Mail } from "lucide-react";
 

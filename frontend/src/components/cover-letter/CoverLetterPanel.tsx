@@ -1,57 +1,73 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Sparkles } from "lucide-react";
-
-const AI_SUGGESTIONS = [
-  { type: "improve", text: "Mention the company's recent Series B funding to show you've done research" },
-  { type: "add", text: "Include your GitHub profile link for the engineering role" },
-  { type: "improve", text: "Opening line is strong — keep it under 2 sentences for impact" },
-  { type: "warning", text: "Avoid starting sentences with 'I' more than twice in a row" },
-];
-
-const STATS = [
-  { label: "Letters Generated", value: "890K+" },
-  { label: "Response Rate", value: "2.8x" },
-  { label: "Avg Generation", value: "< 30s" },
-  { label: "Tone Accuracy", value: "94%" },
-];
+import { Sparkles, FileText, CheckCircle2 } from "lucide-react";
+import { useCoverLetterStore } from "@/stores/useCoverLetterStore";
+import { useResumeDraftSnapshot } from "@/lib/resume-draft";
 
 export function CoverLetterPanel() {
+  const { activeLetter } = useCoverLetterStore();
+  const draft = useResumeDraftSnapshot();
+  const resumeName = draft?.builder?.personalInfo?.firstName
+    ? `${draft.builder.personalInfo.firstName} ${draft.builder.personalInfo.lastName || ""}`
+    : "Candidate Profile";
+
   return (
     <aside className="w-96 shrink-0 border-l border-border/50 bg-background/50 h-full flex flex-col">
       <div className="h-16 flex items-center px-6 border-b border-border/50 shrink-0 bg-background/80 backdrop-blur-md">
-        <h2 className="font-semibold text-sm">AI Suggestions</h2>
+        <h2 className="font-semibold text-sm flex items-center gap-2">
+          <FileText className="w-4 h-4 text-accent" />
+          <span>Letter Inspector</span>
+        </h2>
       </div>
 
       <div className="flex-1 overflow-y-auto no-scrollbar p-6 space-y-8">
 
-        <div>
-          <h3 className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60 mb-4">Live Suggestions</h3>
-          <div className="space-y-3">
-            {AI_SUGGESTIONS.map((s, i) => (
-              <motion.div key={i} initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.1 }}
-                className="p-4 rounded-xl border border-border/50 bg-card">
-                <div className="flex items-start gap-2">
-                  <span className={`w-1.5 h-1.5 rounded-full mt-1.5 shrink-0 ${
-                    s.type === "improve" ? "bg-blue-500" : s.type === "add" ? "bg-green-500" : "bg-yellow-500"}`} />
-                  <p className="text-xs text-muted-foreground leading-relaxed">{s.text}</p>
-                </div>
-              </motion.div>
-            ))}
+        {/* Active Letter Summary */}
+        {activeLetter ? (
+          <div>
+            <h3 className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60 mb-3">Active Document</h3>
+            <div className="p-5 rounded-2xl border border-border/50 bg-card space-y-3 shadow-sm">
+              <div className="flex items-center gap-2 text-emerald-500 text-xs font-semibold">
+                <CheckCircle2 className="w-4 h-4" />
+                <span>Generated & Saved</span>
+              </div>
+              <div>
+                <p className="font-bold text-sm">{activeLetter.title}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Author: {resumeName}</p>
+              </div>
+              <div className="pt-2 border-t border-border/30 text-[11px] text-muted-foreground flex justify-between">
+                <span>Tone: <strong className="capitalize text-foreground">{activeLetter.tone}</strong></span>
+                <span>{new Date(activeLetter.createdAt).toLocaleDateString()}</span>
+              </div>
+            </div>
           </div>
-        </div>
+        ) : (
+          <div>
+            <h3 className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60 mb-3">Grounding Source</h3>
+            <div className="p-5 rounded-2xl border border-border/50 bg-card space-y-2 text-xs">
+              <p className="font-semibold text-foreground">{resumeName}</p>
+              <p className="text-muted-foreground">Target Role: {draft?.builder?.targetRole || "Software Engineer"}</p>
+              <p className="text-[11px] text-accent font-medium">Resume facts loaded & verified</p>
+            </div>
+          </div>
+        )}
 
         <div>
-          <h3 className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60 mb-4">Platform Stats</h3>
-          <div className="grid grid-cols-2 gap-3">
-            {STATS.map((s, i) => (
-              <motion.div key={i} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }}
-                className="p-4 rounded-2xl border border-border/50 bg-card text-center">
-                <p className="text-xl font-bold text-accent">{s.value}</p>
-                <p className="text-[10px] text-muted-foreground mt-0.5">{s.label}</p>
-              </motion.div>
-            ))}
+          <h3 className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60 mb-3">Recruiter Best Practices</h3>
+          <div className="space-y-3">
+            <div className="p-4 rounded-xl border border-border/50 bg-card">
+              <p className="text-xs font-semibold text-foreground mb-1">Length Guide</p>
+              <p className="text-xs text-muted-foreground leading-relaxed">Keep your cover letter between 250 and 350 words (3-4 concise paragraphs).</p>
+            </div>
+            <div className="p-4 rounded-xl border border-border/50 bg-card">
+              <p className="text-xs font-semibold text-foreground mb-1">Tailored Opening</p>
+              <p className="text-xs text-muted-foreground leading-relaxed">Mention the exact company name and target role in the very first sentence.</p>
+            </div>
+            <div className="p-4 rounded-xl border border-border/50 bg-card">
+              <p className="text-xs font-semibold text-foreground mb-1">Factual Impact</p>
+              <p className="text-xs text-muted-foreground leading-relaxed">Highlight top technical achievements directly from your resume.</p>
+            </div>
           </div>
         </div>
 
@@ -61,7 +77,7 @@ export function CoverLetterPanel() {
             <span className="text-xs font-bold">Smart Personalization</span>
           </div>
           <p className="text-xs text-muted-foreground leading-relaxed">
-            We scan the job description for hidden keywords and weave them naturally into your letter — boosting ATS match rate by up to 40%.
+            We scan the target job for core technical skills and weave them naturally into your letter — boosting ATS match rates predictable and safely.
           </p>
         </div>
       </div>

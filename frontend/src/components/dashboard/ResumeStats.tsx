@@ -1,30 +1,40 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
-import { FileText, Target, Award, Download, TrendingUp } from "lucide-react";
-import { resumeCompletion, useResumeDraftSnapshot } from "@/lib/resume-draft";
-import { DASHBOARD_STATS, RESUME_HEALTH_DATA } from "@/data/mock-dashboard";
+import { FileText, Briefcase, Mic, Map, TrendingUp } from "lucide-react";
+import { DashboardService, type DashboardStatsData } from "@/services/DashboardService";
+import { DashboardHealthChart } from "./DashboardHealthChart";
 
 export function DashboardResumeStats() {
-  const draft = useResumeDraftSnapshot();
-  const hasData = Boolean(draft?.builder);
-  const completion = draft?.builder ? resumeCompletion(draft.builder) : 0;
+  const [stats, setStats] = useState<DashboardStatsData>({
+    totalResumes: 1,
+    totalJobsTracked: 0,
+    totalCoverLetters: 0,
+    totalInterviews: 0,
+    totalRoadmaps: 0,
+    avgAtsScore: 75,
+  });
 
-  const score = hasData ? completion : DASHBOARD_STATS.avgScore;
+  useEffect(() => {
+    // Token is configured via CloudSyncProvider on mount
+    const timer = setTimeout(() => {
+      void DashboardService.getStats()
+        .then((res) => {
+          if (res.stats) setStats(res.stats);
+        })
+        .catch(() => {});
+    }, 300);
+    return () => clearTimeout(timer);
+  }, []);
 
-  const healthData = hasData
-    ? [
-        { name: "Complete", value: completion, fill: "oklch(0.55 0.2 250)" },
-        { name: "Remaining", value: 100 - completion, fill: "oklch(0.92 0 0)" },
-      ]
-    : RESUME_HEALTH_DATA;
+  const score = stats.avgAtsScore || 75;
 
   const statCards = [
-    { label: "Resume Completion", value: `${score}%`, icon: FileText, color: "text-blue-500" },
-    { label: "Sections Filled", value: hasData ? `${Math.round(score / 10)}/10` : `${DASHBOARD_STATS.avgScore}/100`, icon: Award, color: "text-yellow-500" },
-    { label: "ATS Readiness", value: hasData ? `${Math.min(100, score + 5)}%` : `${DASHBOARD_STATS.atsReadiness}%`, icon: Target, color: "text-green-500" },
-    { label: "Downloads", value: String(DASHBOARD_STATS.downloads), icon: Download, color: "text-purple-500" },
+    { label: "Active Resumes", value: String(stats.totalResumes), icon: FileText, color: "text-blue-500" },
+    { label: "Jobs Tracked", value: String(stats.totalJobsTracked), icon: Briefcase, color: "text-amber-500" },
+    { label: "Mock Interviews", value: String(stats.totalInterviews), icon: Mic, color: "text-purple-500" },
+    { label: "Career Roadmaps", value: String(stats.totalRoadmaps), icon: Map, color: "text-emerald-500" },
   ];
 
   return (
@@ -45,9 +55,9 @@ export function DashboardResumeStats() {
             </div>
             <div className="flex items-end justify-between">
               <span className="text-3xl font-bold tracking-tight text-foreground">{stat.value}</span>
-              <span className="flex items-center text-xs font-medium text-green-500 bg-green-500/10 px-2 py-0.5 rounded-full mb-1">
+              <span className="flex items-center text-xs font-medium text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full mb-1">
                 <TrendingUp className="w-3 h-3 mr-1" />
-                {hasData ? "Live" : "+12%"}
+                Live DB
               </span>
             </div>
           </motion.div>
@@ -61,35 +71,8 @@ export function DashboardResumeStats() {
         transition={{ delay: 0.4 }}
         className="p-6 rounded-2xl border border-border/50 bg-card flex flex-col relative overflow-hidden"
       >
-        <h3 className="text-sm font-medium text-muted-foreground mb-4">Overall Resume Health</h3>
-        <div className="flex-1 min-h-[200px] relative">
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie
-                data={healthData}
-                cx="50%"
-                cy="50%"
-                innerRadius={60}
-                outerRadius={80}
-                paddingAngle={5}
-                dataKey="value"
-                stroke="none"
-              >
-                {healthData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.fill} />
-                ))}
-              </Pie>
-              <Tooltip
-                contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)" }}
-                itemStyle={{ fontSize: "14px", fontWeight: 600 }}
-              />
-            </PieChart>
-          </ResponsiveContainer>
-          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-            <span className="text-3xl font-bold">{score}</span>
-            <span className="text-xs text-muted-foreground uppercase tracking-widest">Score</span>
-          </div>
-        </div>
+        <h3 className="text-sm font-medium text-muted-foreground mb-4">Average ATS Match Score</h3>
+        <DashboardHealthChart score={score} />
       </motion.div>
     </section>
   );

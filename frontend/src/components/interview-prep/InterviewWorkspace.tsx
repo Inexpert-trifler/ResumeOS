@@ -1,38 +1,54 @@
 "use client";
 
-import { useState } from "react";
-import { motion } from "framer-motion";
+import { useEffect } from "react";
 import { FadeUp } from "@/animations/FadeUp";
-import { StaggerContainer, StaggerItem } from "@/animations/StaggerAnimation";
-import { Mic, Building2, Code2, Users, MessageCircle, Brain, ChevronRight, Sparkles, Send, Bot, User } from "lucide-react";
+import { Mic, Brain, Users, MessageCircle, Code2, Sparkles, Send, Loader2, CheckCircle2, XCircle, ArrowRight, ArrowLeft, Award, HelpCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-
-const COMPANIES = [
-  { name: "Google", color: "bg-blue-500", level: "FAANG", logo: "G" },
-  { name: "Meta", color: "bg-blue-600", level: "FAANG", logo: "M" },
-  { name: "Apple", color: "bg-gray-800", level: "FAANG", logo: "A" },
-  { name: "Amazon", color: "bg-orange-500", level: "FAANG", logo: "A" },
-  { name: "Stripe", color: "bg-purple-600", level: "Tier 1", logo: "S" },
-  { name: "Linear", color: "bg-indigo-500", level: "Tier 1", logo: "L" },
-];
-
-const MOCK_CHAT = [
-  { role: "ai", text: "Welcome to your mock technical interview for a Senior Software Engineer role at Google. Let's start with a warm-up question.\n\nCan you walk me through a time when you had to design a system under tight constraints?" },
-  { role: "user", text: "Sure! At my last role, we had to redesign our notification service to handle 10x traffic within 2 weeks…" },
-  { role: "ai", text: "Good start! I noticed you mentioned handling traffic scale — can you quantify the improvement? For example, latency reduction or throughput numbers? Recruiters love specific metrics." },
-];
+import { useInterviewStore } from "@/stores/useInterviewStore";
+import { useAuth } from "@clerk/nextjs";
 
 const INTERVIEW_MODES = [
-  { icon: Brain, label: "Technical", desc: "System design, DSA", color: "text-blue-500", bg: "bg-blue-500/10" },
-  { icon: Users, label: "HR Fit", desc: "Culture, motivation", color: "text-purple-500", bg: "bg-purple-500/10" },
-  { icon: MessageCircle, label: "Behavioral", desc: "STAR framework", color: "text-green-500", bg: "bg-green-500/10" },
-  { icon: Code2, label: "Coding", desc: "LeetCode style", color: "text-orange-500", bg: "bg-orange-500/10" },
+  { id: "technical", icon: Brain, label: "Technical", desc: "System design & coding", color: "text-blue-500", bg: "bg-blue-500/10" },
+  { id: "behavioral", icon: MessageCircle, label: "Behavioral", desc: "STAR framework focus", color: "text-green-500", bg: "bg-green-500/10" },
+  { id: "hr", icon: Users, label: "HR Fit", desc: "Culture & background", color: "text-purple-500", bg: "bg-purple-500/10" },
+  { id: "mixed", icon: Code2, label: "Mixed", desc: "Comprehensive prep", color: "text-amber-500", bg: "bg-amber-500/10" },
 ];
 
 export function InterviewWorkspace() {
-  const [selectedCompany, setSelectedCompany] = useState<string | null>(null);
-  const [started, setStarted] = useState(false);
+  const { isLoaded } = useAuth();
+  const {
+    targetRole,
+    interviewType,
+    difficulty,
+    activeSession,
+    questions,
+    currentQuestionIndex,
+    userAnswer,
+    evaluationResult,
+    isCreatingSession,
+    isGeneratingQuestions,
+    isSubmittingAnswer,
+    isEvaluating,
+    error,
+    setTargetRole,
+    setInterviewType,
+    setDifficulty,
+    setUserAnswer,
+    startNewInterview,
+    nextQuestion,
+    prevQuestion,
+    finishAndEvaluateSession,
+    fetchPastSessions,
+  } = useInterviewStore();
+
+  useEffect(() => {
+    if (isLoaded) {
+      void fetchPastSessions();
+    }
+  }, [isLoaded, fetchPastSessions]);
+
+  const currentQ = questions[currentQuestionIndex];
 
   return (
     <div className="flex-1 flex flex-col h-full bg-background overflow-y-auto no-scrollbar">
@@ -44,136 +60,265 @@ export function InterviewWorkspace() {
             <Mic className="w-4 h-4 text-accent" />
           </div>
           <div>
-            <h1 className="font-semibold text-sm">Interview Preparation</h1>
-            <p className="text-[10px] text-muted-foreground">AI Mock Interview Studio</p>
+            <h1 className="font-semibold text-sm">AI Interview Studio</h1>
+            <p className="text-[10px] text-muted-foreground">Real-time mock interview & STAR evaluation</p>
           </div>
         </div>
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-accent/10 border border-accent/20">
-          <div className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
-          <span className="text-[11px] font-semibold text-accent">Coming Q3 2025</span>
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">
+          <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+          <span className="text-[11px] font-semibold text-emerald-500">Live AI Evaluator</span>
         </div>
       </div>
 
-      <div className="p-8 space-y-10 max-w-4xl w-full mx-auto">
+      <div className="p-8 space-y-8 max-w-4xl w-full mx-auto">
 
-        {/* Hero */}
-        <FadeUp>
-          <div className="text-center space-y-3 pt-4">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-border/50 bg-muted/30 text-xs text-muted-foreground mb-2">
-              <Sparkles className="w-3.5 h-3.5 text-accent" />
-              AI Interview Coach · Powered by GPT-4
-            </div>
-            <h2 className="text-3xl font-bold tracking-tight">Practice Like It&apos;s the Real Thing</h2>
-            <p className="text-muted-foreground max-w-xl mx-auto text-sm leading-relaxed">
-              Simulate real interviews at top companies. Get instant AI feedback on your answers, tone, and structure.
-            </p>
-          </div>
-        </FadeUp>
+        {/* Evaluation Report View */}
+        {evaluationResult ? (
+          <FadeUp>
+            <div className="space-y-6">
+              <div className="p-8 rounded-3xl border border-border/60 bg-card shadow-sm text-center space-y-4">
+                <div className="w-20 h-20 rounded-full bg-accent/10 border-2 border-accent/40 flex items-center justify-center mx-auto">
+                  <span className="text-3xl font-black text-accent">{evaluationResult.overallScore}</span>
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold">Interview Performance Report</h2>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Answered {evaluationResult.answeredQuestions} of {evaluationResult.totalQuestions} questions
+                  </p>
+                </div>
 
-        {/* Interview Modes */}
-        <FadeUp delay={0.1}>
-          <StaggerContainer className="grid grid-cols-4 gap-4">
-            {INTERVIEW_MODES.map((mode, i) => {
-              const Icon = mode.icon;
-              return (
-                <StaggerItem key={i}>
-                  <div className="p-4 rounded-2xl border border-border/50 bg-card text-center hover:border-accent/30 hover:shadow-sm transition-all cursor-pointer group">
-                    <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-3 transition-transform group-hover:scale-110", mode.bg)}>
-                      <Icon className={cn("w-5 h-5", mode.color)} />
-                    </div>
-                    <p className="text-sm font-semibold">{mode.label}</p>
-                    <p className="text-[11px] text-muted-foreground mt-0.5">{mode.desc}</p>
-                  </div>
-                </StaggerItem>
-              );
-            })}
-          </StaggerContainer>
-        </FadeUp>
-
-        {/* Company Selection */}
-        <FadeUp delay={0.15}>
-          <div className="p-6 rounded-3xl border border-border/50 bg-card">
-            <h3 className="font-semibold mb-4 flex items-center gap-2">
-              <Building2 className="w-4 h-4 text-accent" /> Select Target Company
-            </h3>
-            <div className="grid grid-cols-3 gap-3 mb-6">
-              {COMPANIES.map((company) => (
-                <motion.button
-                  key={company.name}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => setSelectedCompany(company.name)}
-                  className={cn(
-                    "p-4 rounded-2xl border-2 transition-all flex items-center gap-3",
-                    selectedCompany === company.name
-                      ? "border-accent bg-accent/10"
-                      : "border-border/50 bg-background hover:border-accent/40"
-                  )}
-                >
-                  <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center text-white text-sm font-bold shrink-0", company.color)}>
-                    {company.logo}
-                  </div>
-                  <div className="text-left min-w-0">
-                    <p className="text-sm font-semibold truncate">{company.name}</p>
-                    <p className="text-[10px] text-muted-foreground">{company.level}</p>
-                  </div>
-                </motion.button>
-              ))}
-            </div>
-            <Button
-              onClick={() => setStarted(true)}
-              disabled={!selectedCompany}
-              aria-pressed={started}
-              className="w-full rounded-xl gap-2"
-            >
-              Start Mock Interview
-              <ChevronRight className="w-4 h-4" />
-            </Button>
-          </div>
-        </FadeUp>
-
-        {/* Mock Chat Interface */}
-        <FadeUp delay={0.2}>
-          <div className="rounded-3xl border border-border/50 bg-card overflow-hidden">
-            <div className="px-6 py-4 border-b border-border/50 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                <span className="font-semibold text-sm">Interview Preview</span>
+                <Button onClick={() => void startNewInterview()} className="rounded-full bg-accent text-accent-foreground font-semibold px-6">
+                  Start Another Practice Session
+                </Button>
               </div>
-              <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">Google · Senior SWE</span>
+
+              {/* Evaluations per Question */}
+              <div className="space-y-4">
+                <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground/70">Question Breakdowns</h3>
+                {evaluationResult.evaluations.map((item, idx) => (
+                  <div key={idx} className="p-6 rounded-2xl border border-border/50 bg-card space-y-4">
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <span className="text-xs font-semibold text-accent uppercase">Q{idx + 1} · {item.category}</span>
+                        <p className="font-bold text-base mt-1">{item.question}</p>
+                      </div>
+                      <div className="px-3 py-1 rounded-full bg-accent/10 text-accent font-bold text-sm shrink-0">
+                        {item.score}/100
+                      </div>
+                    </div>
+
+                    {/* STAR Checklist */}
+                    {item.star && (
+                      <div className="flex items-center gap-4 text-xs font-medium pt-2 border-t border-border/30">
+                        <span className="text-muted-foreground font-bold">STAR Framework:</span>
+                        <div className="flex items-center gap-1.5">
+                          {item.star.situation ? <CheckCircle2 className="w-3.5 h-3.5 text-green-500" /> : <XCircle className="w-3.5 h-3.5 text-muted-foreground/40" />}
+                          <span>Situation</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          {item.star.task ? <CheckCircle2 className="w-3.5 h-3.5 text-green-500" /> : <XCircle className="w-3.5 h-3.5 text-muted-foreground/40" />}
+                          <span>Task</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          {item.star.action ? <CheckCircle2 className="w-3.5 h-3.5 text-green-500" /> : <XCircle className="w-3.5 h-3.5 text-muted-foreground/40" />}
+                          <span>Action</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          {item.star.result ? <CheckCircle2 className="w-3.5 h-3.5 text-green-500" /> : <XCircle className="w-3.5 h-3.5 text-muted-foreground/40" />}
+                          <span>Result</span>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="p-4 rounded-xl bg-muted/20 text-xs text-muted-foreground leading-relaxed">
+                      <strong>AI Feedback:</strong> {item.feedback}
+                    </div>
+
+                    {item.improvedAnswer && (
+                      <div className="p-4 rounded-xl bg-accent/5 border border-accent/20 text-xs text-foreground leading-relaxed">
+                        <strong className="text-accent">Suggested High-Impact Answer:</strong>
+                        <p className="mt-1 font-serif text-muted-foreground">{item.improvedAnswer}</p>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
-            <div className="p-6 space-y-4 max-h-72 overflow-y-auto no-scrollbar">
-              {MOCK_CHAT.map((msg, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.3 }}
-                  className={cn("flex gap-3 max-w-[90%]", msg.role === "user" ? "ml-auto flex-row-reverse" : "")}
+          </FadeUp>
+        ) : activeSession && questions.length > 0 ? (
+          /* Active Question Flow */
+          <FadeUp>
+            <div className="p-6 rounded-3xl border border-border/50 bg-card shadow-sm space-y-6">
+              {/* Progress header */}
+              <div className="flex items-center justify-between pb-4 border-b border-border/40">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-accent uppercase">Question {currentQuestionIndex + 1} of {questions.length}</span>
+                  <span className="text-xs px-2.5 py-0.5 rounded-full bg-muted font-medium capitalize">{currentQ.category}</span>
+                </div>
+                <div className="text-xs font-semibold text-muted-foreground capitalize">
+                  Difficulty: <span className="text-foreground">{currentQ.difficulty}</span>
+                </div>
+              </div>
+
+              {/* Question text */}
+              <div className="space-y-2">
+                <h2 className="text-xl font-bold">{currentQ.question}</h2>
+                {currentQ.whyItMayBeAsked && (
+                  <p className="text-xs text-muted-foreground italic flex items-center gap-1">
+                    <HelpCircle className="w-3.5 h-3.5 text-accent" /> Why recruiters ask this: {currentQ.whyItMayBeAsked}
+                  </p>
+                )}
+              </div>
+
+              {/* Response Textarea */}
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-muted-foreground">Your Response</label>
+                <textarea
+                  value={userAnswer}
+                  onChange={(e) => setUserAnswer(e.target.value)}
+                  placeholder="Type your answer using the STAR method (Situation, Task, Action, Result)..."
+                  rows={6}
+                  className="w-full p-4 rounded-2xl bg-background border border-border/60 text-sm focus:outline-none focus:border-accent resize-none leading-relaxed"
+                />
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex items-center justify-between pt-2">
+                <Button
+                  onClick={prevQuestion}
+                  disabled={currentQuestionIndex === 0}
+                  variant="outline"
+                  className="rounded-xl gap-2 text-xs"
                 >
-                  <div className={cn("w-7 h-7 rounded-full flex items-center justify-center shrink-0 mt-1",
-                    msg.role === "ai" ? "bg-accent/10 border border-accent/20" : "bg-muted border border-border")}>
-                    {msg.role === "ai" ? <Bot className="w-3.5 h-3.5 text-accent" /> : <User className="w-3.5 h-3.5 text-muted-foreground" />}
-                  </div>
-                  <div className={cn("px-4 py-3 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap",
-                    msg.role === "ai" ? "bg-background border border-border/50 rounded-bl-sm" : "bg-accent text-accent-foreground rounded-br-sm")}>
-                    {msg.text}
-                  </div>
-                </motion.div>
-              ))}
+                  <ArrowLeft className="w-4 h-4" /> Previous
+                </Button>
+
+                <div className="flex items-center gap-3">
+                  {currentQuestionIndex < questions.length - 1 ? (
+                    <Button
+                      onClick={nextQuestion}
+                      className="rounded-xl bg-accent text-accent-foreground font-semibold gap-2"
+                    >
+                      Next Question <ArrowRight className="w-4 h-4" />
+                    </Button>
+                  ) : (
+                    <Button
+                      onClick={() => void finishAndEvaluateSession()}
+                      disabled={isEvaluating}
+                      className="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold gap-2"
+                    >
+                      {isEvaluating ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" /> Evaluating Answer...
+                        </>
+                      ) : (
+                        <>
+                          <Award className="w-4 h-4" /> Finish & View Evaluation
+                        </>
+                      )}
+                    </Button>
+                  )}
+                </div>
+              </div>
             </div>
-            <div className="px-6 py-4 border-t border-border/50 flex items-center gap-3">
-              <input
-                readOnly
-                placeholder="Type your answer… (preview mode)"
-                className="flex-1 bg-muted/50 rounded-xl px-4 py-2.5 text-sm outline-none border border-border/50 placeholder:text-muted-foreground/50 cursor-not-allowed"
-              />
-              <Button size="sm" className="rounded-xl gap-2 shrink-0" disabled>
-                <Send className="w-3.5 h-3.5" /> Send
+          </FadeUp>
+        ) : (
+          /* Setup Form */
+          <FadeUp>
+            <div className="p-8 rounded-3xl border border-border/50 bg-card shadow-sm space-y-8">
+              <div className="text-center space-y-2">
+                <h2 className="text-2xl font-bold tracking-tight">Practice Real AI Mock Interviews</h2>
+                <p className="text-muted-foreground text-sm max-w-md mx-auto">
+                  Tailored to your target role, active resume skills, and top company interview standards.
+                </p>
+              </div>
+
+              {error && (
+                <div className="p-3.5 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-xs font-medium">
+                  {error}
+                </div>
+              )}
+
+              {/* Target Role Input */}
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-muted-foreground">Target Role Title *</label>
+                <input
+                  type="text"
+                  value={targetRole}
+                  onChange={(e) => setTargetRole(e.target.value)}
+                  placeholder="e.g. Senior Software Engineer"
+                  className="w-full h-11 px-4 rounded-xl bg-background border border-border/60 text-sm focus:outline-none focus:border-accent"
+                />
+              </div>
+
+              {/* Interview Mode Selection */}
+              <div className="space-y-3">
+                <label className="text-xs font-semibold text-muted-foreground">Interview Category</label>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  {INTERVIEW_MODES.map((mode) => {
+                    const Icon = mode.icon;
+                    const isSelected = interviewType === mode.id;
+                    return (
+                      <div
+                        key={mode.id}
+                        onClick={() => setInterviewType(mode.id)}
+                        className={cn(
+                          "p-4 rounded-2xl border cursor-pointer transition-all text-center",
+                          isSelected ? "border-accent bg-accent/10 shadow-sm" : "border-border/50 bg-background hover:border-accent/30"
+                        )}
+                      >
+                        <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center mx-auto mb-2", mode.bg)}>
+                          <Icon className={cn("w-4 h-4", mode.color)} />
+                        </div>
+                        <p className={cn("text-xs font-semibold", isSelected ? "text-accent" : "text-foreground")}>{mode.label}</p>
+                        <p className="text-[10px] text-muted-foreground mt-0.5">{mode.desc}</p>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Difficulty Selection */}
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-muted-foreground">Difficulty Level</label>
+                <div className="grid grid-cols-3 gap-3">
+                  {["beginner", "intermediate", "advanced"].map((level) => (
+                    <button
+                      key={level}
+                      type="button"
+                      onClick={() => setDifficulty(level)}
+                      className={cn(
+                        "h-10 rounded-xl border text-xs font-semibold capitalize transition-all",
+                        difficulty === level ? "border-accent bg-accent/10 text-accent" : "border-border/60 bg-background text-muted-foreground"
+                      )}
+                    >
+                      {level}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <Button
+                onClick={() => void startNewInterview()}
+                disabled={isCreatingSession || isGeneratingQuestions || !targetRole.trim()}
+                size="lg"
+                className="w-full h-12 rounded-2xl bg-accent text-accent-foreground font-semibold gap-2 shadow-md hover:bg-accent/90"
+              >
+                {isCreatingSession || isGeneratingQuestions ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Generating Context-Aware Questions...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-4 h-4" />
+                    Start AI Mock Interview
+                  </>
+                )}
               </Button>
             </div>
-          </div>
-        </FadeUp>
+          </FadeUp>
+        )}
 
       </div>
     </div>

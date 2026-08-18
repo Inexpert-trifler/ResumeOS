@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { PageTransition } from "@/components/shared/PageTransition";
 import { AnalyzerSidebar } from "@/components/analyzer/AnalyzerSidebar";
 import { AnalyzerHeroUpload } from "@/components/analyzer/HeroUpload";

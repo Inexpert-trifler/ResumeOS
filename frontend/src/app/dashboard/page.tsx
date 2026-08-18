@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { DashboardHeroWelcome } from "@/components/dashboard/HeroWelcome";
 import { DashboardQuickActions } from "@/components/dashboard/QuickActions";
 import { DashboardResumeStats } from "@/components/dashboard/ResumeStats";

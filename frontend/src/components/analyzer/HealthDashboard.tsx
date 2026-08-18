@@ -1,114 +1,88 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
-import { Target, PenTool, BookOpen, Briefcase, Award, Zap } from "lucide-react";
+import { Target, PenTool, BookOpen, Briefcase, Zap, Award } from "lucide-react";
 import { useResumeAnalysis } from "@/lib/resume-analysis";
+import { useAnalyzerStore } from "@/stores/useAnalyzerStore";
+import { AnalyzerChart } from "./AnalyzerChart";
 
 const MINI_SCORE_STYLES = [
-  { label: "ATS Match", icon: Target, color: "text-blue-500", stroke: "#3b82f6" },
-  { label: "Grammar", icon: PenTool, color: "text-green-500", stroke: "#22c55e" },
-  { label: "Readability", icon: BookOpen, color: "text-purple-500", stroke: "#a855f7" },
-  { label: "Experience", icon: Briefcase, color: "text-orange-500", stroke: "#f97316" },
-  { label: "Skills", icon: Zap, color: "text-yellow-500", stroke: "#eab308" },
-  { label: "Impact", icon: Award, color: "text-pink-500", stroke: "#ec4899" },
+  { label: "Technical Skills", icon: Zap, color: "text-amber-500" },
+  { label: "ATS Keywords", icon: Target, color: "text-blue-500" },
+  { label: "Experience", icon: Briefcase, color: "text-orange-500" },
+  { label: "Responsibilities", icon: PenTool, color: "text-emerald-500" },
+  { label: "Education", icon: BookOpen, color: "text-purple-500" },
+  { label: "Soft Skills", icon: Award, color: "text-pink-500" },
 ];
 
 export function AnalyzerHealthDashboard() {
-  const analysis = useResumeAnalysis();
-  const overallData = [
-    { name: "Score", value: analysis.overallScore, fill: "hsl(var(--accent))" },
-    { name: "Remaining", value: 100 - analysis.overallScore, fill: "hsl(var(--muted))" }
-  ];
+  const fallbackAnalysis = useResumeAnalysis();
+  const { analysis: realAnalysis } = useAnalyzerStore();
+
+  const score = realAnalysis ? realAnalysis.atsScore : fallbackAnalysis.overallScore;
+  const verdict = score >= 80 ? "Excellent Match" : score >= 60 ? "Good Match" : "Needs Improvement";
+  const verdictDesc = realAnalysis?.aiSummary || (score >= 80
+    ? "Your resume strongly aligns with target ATS qualifications."
+    : "Run ATS analysis with your target job description to get tailored recommendations.");
+
+  const breakdown = realAnalysis?.breakdown;
   const miniScores = [
-    { ...MINI_SCORE_STYLES[0], score: analysis.atsReadiness },
-    { ...MINI_SCORE_STYLES[1], score: analysis.grammarScore },
-    { ...MINI_SCORE_STYLES[2], score: analysis.readability.score },
-    { ...MINI_SCORE_STYLES[3], score: analysis.experienceScore },
-    { ...MINI_SCORE_STYLES[4], score: analysis.skillsScore },
-    { ...MINI_SCORE_STYLES[5], score: analysis.impactScore },
+    { ...MINI_SCORE_STYLES[0], score: breakdown ? breakdown.skills : fallbackAnalysis.skillsScore },
+    { ...MINI_SCORE_STYLES[1], score: breakdown ? breakdown.keywords : fallbackAnalysis.atsReadiness },
+    { ...MINI_SCORE_STYLES[2], score: breakdown ? breakdown.experience : fallbackAnalysis.experienceScore },
+    { ...MINI_SCORE_STYLES[3], score: breakdown ? breakdown.responsibilities : fallbackAnalysis.impactScore },
+    { ...MINI_SCORE_STYLES[4], score: breakdown ? breakdown.education : fallbackAnalysis.grammarScore },
+    { ...MINI_SCORE_STYLES[5], score: breakdown ? breakdown.softSkills : fallbackAnalysis.readability.score },
   ];
 
   return (
-    <section className="mb-12">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold">Resume Health</h2>
-        <div className="px-3 py-1 bg-accent/10 text-accent text-sm font-medium rounded-full">
-          {analysis.verdict}
+    <section className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      {/* Overall Score Pie Chart */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="lg:col-span-4 p-6 rounded-2xl border border-border/50 bg-card flex flex-col items-center justify-center text-center relative overflow-hidden"
+      >
+        <h3 className="text-sm font-medium text-muted-foreground mb-4">Overall ATS Health Score</h3>
+        <div className="w-48 h-48 relative">
+          <AnalyzerChart score={score} />
         </div>
-      </div>
+        <div className="mt-4 space-y-1">
+          <span className="inline-block px-3 py-1 rounded-full bg-accent/10 text-accent text-xs font-semibold">
+            {verdict}
+          </span>
+          <p className="text-xs text-muted-foreground max-w-xs">{verdictDesc}</p>
+        </div>
+      </motion.div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Large Score Circle */}
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="col-span-1 p-8 rounded-3xl border border-border/50 bg-card flex flex-col items-center justify-center relative shadow-sm"
-        >
-          <div className="w-48 h-48 relative">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={overallData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={75}
-                  outerRadius={90}
-                  startAngle={90}
-                  endAngle={-270}
-                  dataKey="value"
-                  stroke="none"
-                  cornerRadius={10}
-                >
-                  {overallData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.fill} />
-                  ))}
-                </Pie>
-              </PieChart>
-            </ResponsiveContainer>
-            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-              <span className="text-5xl font-black">{analysis.overallScore}</span>
-              <span className="text-xs text-muted-foreground uppercase tracking-widest mt-1">Out of 100</span>
-            </div>
-          </div>
-          <p className="mt-6 text-center font-medium">{analysis.verdictDescription}</p>
-        </motion.div>
-
-        {/* Mini Scores Grid */}
-        <div className="col-span-1 md:col-span-2 grid grid-cols-2 lg:grid-cols-3 gap-4">
-          {miniScores.map((item, i) => (
+      {/* 6 Mini Score Cards */}
+      <div className="lg:col-span-8 grid grid-cols-2 sm:grid-cols-3 gap-4">
+        {miniScores.map((item, i) => {
+          const Icon = item.icon;
+          return (
             <motion.div
               key={item.label}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 + (i * 0.05) }}
-              className="p-5 rounded-2xl border border-border/50 bg-card hover:bg-muted/50 transition-colors flex flex-col justify-between"
+              transition={{ delay: i * 0.05 }}
+              className="p-5 rounded-2xl border border-border/50 bg-card flex flex-col justify-between hover:border-border transition-colors"
             >
-              <div className="flex items-center gap-2 mb-4">
-                <div className={`p-2 rounded-lg bg-background border border-border/50 shadow-sm ${item.color}`}>
-                  <item.icon className="w-4 h-4" />
-                </div>
-                <span className="text-sm font-semibold">{item.label}</span>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-medium text-muted-foreground">{item.label}</span>
+                <Icon className={`w-4 h-4 ${item.color}`} />
               </div>
-              
-              <div className="space-y-2">
-                <div className="flex items-end justify-between">
-                  <span className="text-2xl font-bold">{item.score}</span>
-                  <span className="text-xs text-muted-foreground">/ 100</span>
-                </div>
-                <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
-                  <motion.div 
-                    initial={{ width: 0 }}
-                    animate={{ width: `${item.score}%` }}
-                    transition={{ duration: 1, ease: "easeOut" }}
-                    className="h-full rounded-full"
-                    style={{ backgroundColor: item.stroke }}
+              <div className="flex items-end justify-between">
+                <span className="text-2xl font-bold tracking-tight">{item.score}%</span>
+                <div className="w-12 h-1.5 bg-muted rounded-full overflow-hidden mb-1">
+                  <div
+                    className="h-full bg-accent rounded-full transition-all duration-500"
+                    style={{ width: `${item.score}%` }}
                   />
                 </div>
               </div>
             </motion.div>
-          ))}
-        </div>
+          );
+        })}
       </div>
     </section>
   );

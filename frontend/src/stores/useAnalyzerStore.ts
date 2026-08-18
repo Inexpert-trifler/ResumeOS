@@ -1,26 +1,48 @@
-import { create } from 'zustand';
-import type { AtsAnalysis } from '@/types';
+import { create } from "zustand";
+import { AnalysisService, type AtsAnalysisResponse } from "@/services/AnalysisService";
 
 interface AnalyzerStoreState {
-  analysis: AtsAnalysis | null;
-  isAnalyzing: boolean;
-  uploadedFileName: string | null;
   jobDescription: string;
-  setAnalysis: (analysis: AtsAnalysis) => void;
-  setIsAnalyzing: (analyzing: boolean) => void;
-  setUploadedFileName: (name: string | null) => void;
+  targetRole: string;
+  analysis: AtsAnalysisResponse | null;
+  isAnalyzing: boolean;
+  error: string | null;
+
   setJobDescription: (jd: string) => void;
-  clearAnalysis: () => void;
+  setTargetRole: (role: string) => void;
+
+  runAnalysis: (params?: { jobDescription?: string; targetRole?: string; resumeId?: string; jobId?: string }) => Promise<AtsAnalysisResponse | null>;
 }
 
-export const useAnalyzerStore = create<AnalyzerStoreState>((set) => ({
+export const useAnalyzerStore = create<AnalyzerStoreState>((set, get) => ({
+  jobDescription: "",
+  targetRole: "",
   analysis: null,
   isAnalyzing: false,
-  uploadedFileName: null,
-  jobDescription: '',
-  setAnalysis: (analysis) => set({ analysis }),
-  setIsAnalyzing: (analyzing) => set({ isAnalyzing: analyzing }),
-  setUploadedFileName: (name) => set({ uploadedFileName: name }),
-  setJobDescription: (jd) => set({ jobDescription: jd }),
-  clearAnalysis: () => set({ analysis: null, isAnalyzing: false, uploadedFileName: null }),
+  error: null,
+
+  setJobDescription: (jobDescription) => set({ jobDescription }),
+  setTargetRole: (targetRole) => set({ targetRole }),
+
+  runAnalysis: async (params) => {
+    const jd = params?.jobDescription ?? get().jobDescription;
+    const role = params?.targetRole ?? get().targetRole;
+
+    set({ isAnalyzing: true, error: null });
+    try {
+      const report = await AnalysisService.analyze({
+        jobDescription: jd,
+        targetRole: role,
+        resumeId: params?.resumeId,
+        jobId: params?.jobId,
+      });
+
+      set({ analysis: report, isAnalyzing: false });
+      return report;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to run ATS analysis.";
+      set({ error: message, isAnalyzing: false });
+      return null;
+    }
+  },
 }));

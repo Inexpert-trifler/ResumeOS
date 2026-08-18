@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { PageTransition } from "@/components/shared/PageTransition";
 import { InterviewSidebar } from "@/components/interview-prep/InterviewSidebar";
 import { InterviewWorkspace } from "@/components/interview-prep/InterviewWorkspace";

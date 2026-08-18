@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { PageTransition } from "@/components/shared/PageTransition";
 import { CoachSidebar } from "@/components/coach/CoachSidebar";
 import { ChatInterface } from "@/components/coach/ChatInterface";

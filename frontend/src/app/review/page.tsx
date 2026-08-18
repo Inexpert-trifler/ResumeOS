@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { PageTransition } from "@/components/shared/PageTransition";
 import { ReviewSidebar } from "@/components/review/ReviewSidebar";
 import { ReviewWorkspace } from "@/components/review/ReviewWorkspace";

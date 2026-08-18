@@ -4,7 +4,7 @@ export const runtime = "nodejs";
 
 const BACKEND_API_URL = (
   process.env.BACKEND_INTERNAL_URL ||
-  "http://localhost:4000/api"
+  "https://resumeos-j2u9.onrender.com/api"
 ).replace(/\/$/, "");
 
 const HOP_BY_HOP_HEADERS = new Set([

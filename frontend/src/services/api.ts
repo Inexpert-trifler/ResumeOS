@@ -3,5 +3,8 @@ export function getApiBaseUrl(): string {
     return "/api/backend";
   }
 
-  return (process.env.BACKEND_INTERNAL_URL ?? "http://localhost:4000/api").replace(/\/$/, "");
+  return (
+    process.env.BACKEND_INTERNAL_URL ??
+    "https://resumeos-j2u9.onrender.com/api"
+  ).replace(/\/$/, "");
 }

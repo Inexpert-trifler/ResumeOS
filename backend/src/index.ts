@@ -63,41 +63,40 @@ if (!allowedOrigins.includes("http://localhost:3000")) {
 
 // ── Security & middleware ─────────────────────────────────────────────────────
 app.use(helmet({ contentSecurityPolicy: false })); // CSP off — we serve raw HTML for PDF
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      // Allow requests with no origin (like mobile apps, curl, or server-to-server)
-      if (!origin) {
+const corsOptions: cors.CorsOptions = {
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps, curl, or server-to-server)
+    if (!origin) {
+      return callback(null, true);
+    }
+
+    // Check explicit allowlist
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    // Check Vercel preview deployment URLs pattern (e.g., https://resume-*.vercel.app or any .vercel.app for this app)
+    try {
+      const parsed = new URL(origin);
+      if (
+        parsed.protocol === "https:" &&
+        (parsed.hostname.endsWith(".vercel.app") || /^resume-.*\.vercel\.app$/.test(parsed.hostname))
+      ) {
         return callback(null, true);
       }
+    } catch {
+      // invalid URL format
+    }
 
-      // Check explicit allowlist
-      if (allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      }
+    return callback(new Error(`Origin ${origin} not allowed by CORS`));
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+};
 
-      // Check Vercel preview deployment URLs pattern (e.g., https://resume-*.vercel.app)
-      try {
-        const parsed = new URL(origin);
-        if (
-          parsed.protocol === "https:" &&
-          (/^resume-.*\.vercel\.app$/.test(parsed.hostname) ||
-            parsed.hostname.endsWith(".vercel.app"))
-        ) {
-          return callback(null, true);
-        }
-      } catch {
-        // invalid URL format
-      }
-
-      return callback(new Error(`Origin ${origin} not allowed by CORS`));
-    },
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
-  })
-);
-app.options("*", cors() as unknown as express.RequestHandler);
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions) as unknown as express.RequestHandler);
 app.use(morgan(process.env.NODE_ENV === "production" ? "combined" : "dev"));
 app.use(compression());
 app.use(express.json({ limit: "2mb" }));

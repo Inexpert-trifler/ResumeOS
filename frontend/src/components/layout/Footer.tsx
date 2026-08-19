@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Container } from "@/components/shared/Container";
+import { Logo } from "@/components/shared/Logo";
 import { Sparkles, MessageCircle, Share2, Globe } from "lucide-react";
 
 const FOOTER_LINKS = {
@@ -34,9 +35,7 @@ export function Footer() {
           {/* Brand column */}
           <div className="col-span-2 md:col-span-1">
             <Link href="/" className="flex items-center gap-2 mb-4 group w-fit">
-              <div className="w-8 h-8 rounded-xl bg-accent flex items-center justify-center shadow-sm shadow-accent/20 group-hover:shadow-accent/40 transition-shadow">
-                <Sparkles className="w-4 h-4 text-white" />
-              </div>
+              <Logo size="md" className="group-hover:opacity-90 transition-opacity" />
               <span className="font-bold text-base tracking-tight">
                 Resume<span className="text-accent">OS</span>
               </span>

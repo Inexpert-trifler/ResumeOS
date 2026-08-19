@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useResumeDraftSnapshot } from "@/lib/resume-draft";
+import { Logo } from "@/components/shared/Logo";
 import { UserButton, useUser } from "@clerk/nextjs";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
@@ -86,10 +87,8 @@ export function DashboardTopNav() {
     <header className="h-14 shrink-0 sticky top-0 z-40 flex items-center justify-between px-6 gap-4 bg-background/90 backdrop-blur-xl border-b border-border/30">
 
       {/* Logo */}
-      <Link href="/dashboard" className="flex items-center gap-2 shrink-0">
-        <div className="w-7 h-7 rounded-lg bg-accent flex items-center justify-center shadow-sm shadow-accent/30">
-          <FileText className="w-3.5 h-3.5 text-white" />
-        </div>
+      <Link href="/dashboard" className="flex items-center gap-2 shrink-0 group">
+        <Logo size="sm" className="group-hover:opacity-90 transition-opacity" />
         <span className="font-bold text-sm tracking-tight hidden sm:block">
           Resume<span className="text-accent">OS</span>
         </span>

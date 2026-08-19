@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ThemeToggle } from "@/components/shared/ThemeToggle";
+import { Logo } from "@/components/shared/Logo";
 import {
   LayoutDashboard, FileText, PenTool, GraduationCap,
   Layers, Target, Briefcase,
@@ -414,9 +415,7 @@ export function DashboardSidebar() {
         {/* Header */}
         <div className="h-16 flex items-center px-4 shrink-0 border-b border-border/50">
           <Link href="/" className="flex items-center gap-2 overflow-hidden group">
-            <div className="w-8 h-8 rounded-xl bg-accent flex items-center justify-center shrink-0 shadow-sm shadow-accent/20 group-hover:shadow-accent/40 transition-shadow">
-              <Sparkles className="w-4 h-4 text-white" />
-            </div>
+            <Logo size="md" className="group-hover:opacity-90 transition-opacity" />
             <AnimatePresence initial={false}>
               {!isCollapsed && (
                 <motion.span

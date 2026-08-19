@@ -6,6 +6,7 @@ import { useState, useEffect, useLayoutEffect } from "react";
 import { ThemeToggle } from "@/components/shared/ThemeToggle";
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/shared/Container";
+import { Logo } from "@/components/shared/Logo";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Menu, Sparkles, X, LayoutDashboard, Layers, GraduationCap, PenTool, Target, Sparkles as CoachIcon, Briefcase, FileText, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -56,9 +57,7 @@ export function Navbar() {
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 shrink-0 group">
-            <div className="w-8 h-8 rounded-xl bg-accent flex items-center justify-center shadow-md shadow-accent/20 group-hover:shadow-accent/40 transition-shadow">
-              <Sparkles className="w-4 h-4 text-white" />
-            </div>
+            <Logo size="md" className="group-hover:opacity-90 transition-opacity" />
             <span className="font-bold text-base tracking-tight">
               Resume<span className="text-accent">OS</span>
             </span>
@@ -154,9 +153,7 @@ export function Navbar() {
                 <SheetHeader className="p-6 pb-4 border-b border-border/50">
                   <SheetTitle>
                     <Link href="/" className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-xl bg-accent flex items-center justify-center">
-                        <Sparkles className="w-4 h-4 text-white" />
-                      </div>
+                      <Logo size="md" />
                       <span className="font-bold text-base">
                         Resume<span className="text-accent">OS</span>
                       </span>

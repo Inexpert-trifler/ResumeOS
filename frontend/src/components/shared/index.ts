@@ -11,3 +11,5 @@ export { PageTransition } from './PageTransition';
 export { SectionHeading } from './SectionHeading';
 export { ThemeToggle } from './ThemeToggle';
 export { Container } from './Container';
+export { Logo } from './Logo';
+

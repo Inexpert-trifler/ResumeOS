@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic';
 
 import Link from "next/link";
 import { Home, LayoutDashboard, ArrowLeft, Sparkles } from "lucide-react";
+import { Logo } from "@/components/shared/Logo";
 
 /**
  * Custom 404 page.
@@ -35,9 +36,7 @@ export default function NotFound() {
         {/* Logo mark */}
         <div className="nf-logo flex items-center justify-center mb-8">
           <Link href="/" className="flex items-center gap-2">
-            <div className="w-10 h-10 rounded-xl bg-accent flex items-center justify-center shadow-lg shadow-accent/20">
-              <Sparkles className="w-5 h-5 text-white" />
-            </div>
+            <Logo size="lg" className="shadow-lg shadow-accent/20 rounded-xl" />
           </Link>
         </div>
 

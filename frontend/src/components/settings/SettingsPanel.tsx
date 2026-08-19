@@ -5,10 +5,13 @@ import { Settings, User, Palette, FileText, Type, Check, Loader2, Save } from "l
 import { Button } from "@/components/ui/button";
 import { SettingsService, type UserSettingsData, type UserProfileData } from "@/services/SettingsService";
 import { useAuth, useUser } from "@clerk/nextjs";
+import { useTheme } from "@/providers/theme-provider";
 
 export function SettingsPanel() {
   const { isLoaded } = useAuth();
   const { user: clerkUser } = useUser();
+  // Global theme state — this is the single source of truth that controls document.documentElement
+  const { theme: globalTheme, setTheme: applyGlobalTheme } = useTheme();
 
   const [profile, setProfile] = useState<UserProfileData | null>(null);
   const [settings, setSettings] = useState<UserSettingsData>({
@@ -29,6 +32,12 @@ export function SettingsPanel() {
         .then((res) => {
           setProfile(res.user);
           setSettings(res.settings);
+          // If the backend has a stored theme preference that differs from the
+          // current provider state, sync it so the page renders correctly.
+          const saved = res.settings.theme as "system" | "dark" | "light" | undefined;
+          if (saved && saved !== globalTheme) {
+            applyGlobalTheme(saved);
+          }
           setIsLoading(false);
         })
         .catch((err) => {
@@ -36,6 +45,8 @@ export function SettingsPanel() {
           setIsLoading(false);
         });
     }
+    // applyGlobalTheme and globalTheme are stable — only re-run when auth loads
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoaded]);
 
   const handleSave = async () => {
@@ -117,13 +128,18 @@ export function SettingsPanel() {
             <div className="space-y-2">
               <label className="text-xs font-semibold text-muted-foreground">Theme Preference</label>
               <div className="grid grid-cols-3 gap-3">
-                {["system", "dark", "light"].map((t) => (
+                {(["system", "dark", "light"] as const).map((t) => (
                   <button
                     key={t}
                     type="button"
-                    onClick={() => setSettings({ ...settings, theme: t })}
+                    onClick={() => {
+                      // Apply to document.documentElement IMMEDIATELY via global provider
+                      applyGlobalTheme(t);
+                      // Keep local settings state in sync for the save-to-backend flow
+                      setSettings((prev) => ({ ...prev, theme: t }));
+                    }}
                     className={`h-10 rounded-xl border text-xs font-semibold capitalize transition-all ${
-                      settings.theme === t ? "border-accent bg-accent/10 text-accent" : "border-border/60 bg-background text-muted-foreground"
+                      globalTheme === t ? "border-accent bg-accent/10 text-accent" : "border-border/60 bg-background text-muted-foreground"
                     }`}
                   >
                     {t}

@@ -4,11 +4,12 @@
  * Preserves deterministic skill matching across JDs and Resumes.
  */
 
-const ALIAS_MAP: Record<string, string> = {
+export const ALIAS_MAP: Record<string, string> = {
   // Languages
   javascript: "javascript",
   js: "javascript",
   ecmascript: "javascript",
+  "vanilla js": "javascript",
 
   typescript: "typescript",
   ts: "typescript",
@@ -31,6 +32,12 @@ const ALIAS_MAP: Record<string, string> = {
   swift: "swift",
   kotlin: "kotlin",
   sql: "sql",
+  html: "html",
+  html5: "html",
+  css: "css",
+  css3: "css",
+  sass: "sass",
+  scss: "sass",
 
   // Frameworks & Libraries
   react: "react",
@@ -72,6 +79,9 @@ const ALIAS_MAP: Record<string, string> = {
   "tailwind css": "tailwind",
   tailwindcss: "tailwind",
 
+  graphql: "graphql",
+  apollo: "graphql",
+
   // Databases
   postgres: "postgresql",
   postgresql: "postgresql",
@@ -105,33 +115,67 @@ const ALIAS_MAP: Record<string, string> = {
   jenkins: "jenkins",
   "github actions": "github actions",
 
+  // Tools & Version Control
+  git: "git",
+  github: "github",
+  gitlab: "gitlab",
+  bitbucket: "bitbucket",
+  jira: "jira",
+  figma: "figma",
+  postman: "postman",
+  vite: "vite",
+  webpack: "webpack",
+
   // Concepts & Practices
   microservices: "microservices",
   "rest api": "rest",
+  "rest apis": "rest",
   rest: "rest",
   restful: "rest",
-  graphql: "graphql",
+  "restful api": "rest",
+  "restful apis": "rest",
   ci: "ci/cd",
   cd: "ci/cd",
   "ci/cd": "ci/cd",
+  "ci cd": "ci/cd",
   agile: "agile",
   scrum: "scrum",
 };
 
+// Common technical terms and keywords to recognize directly
+const RECOGNIZED_TERMS = new Set([
+  "react", "typescript", "javascript", "nextjs", "next.js", "tailwind", "tailwindcss",
+  "graphql", "aws", "postgresql", "postgres", "docker", "git", "github", "kubernetes",
+  "node", "nodejs", "node.js", "express", "python", "java", "c++", "c#", "go", "golang",
+  "rust", "sql", "redis", "mongodb", "rest", "rest api", "ci/cd", "agile", "scrum",
+  "html", "css", "vue", "angular", "gcp", "azure", "linux", "jest", "vite", "webpack"
+]);
+
 export function normalizeTerm(term: string): string {
   const cleaned = term.toLowerCase().replace(/[^a-z0-9#+.]/g, " ").replace(/\s+/g, " ").trim();
-  return ALIAS_MAP[cleaned] ?? cleaned;
+  return ALIAS_MAP[cleaned] ?? ALIAS_MAP[term.toLowerCase().trim()] ?? cleaned;
 }
 
 export function extractNormalizedTerms(text: string): Set<string> {
   const lower = text.toLowerCase();
   const set = new Set<string>();
 
+  // 1. Scan alias map entries
   for (const [raw, canonical] of Object.entries(ALIAS_MAP)) {
     const esc = raw.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    const regex = new RegExp(`\\b${esc}\\b`, "i");
+    // Match word boundary or boundary punctuation like slashes/dots/parens
+    const regex = new RegExp(`(?:^|[^a-zA-Z0-9#+.])${esc}(?:$|[^a-zA-Z0-9#+.])`, "i");
     if (regex.test(lower)) {
       set.add(canonical);
+    }
+  }
+
+  // 2. Scan recognized terms
+  for (const term of RECOGNIZED_TERMS) {
+    const esc = term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const regex = new RegExp(`(?:^|[^a-zA-Z0-9#+.])${esc}(?:$|[^a-zA-Z0-9#+.])`, "i");
+    if (regex.test(lower)) {
+      set.add(normalizeTerm(term));
     }
   }
 

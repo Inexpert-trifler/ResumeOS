@@ -18,7 +18,7 @@ export function AnalyzerHealthDashboard() {
   const { analysis: realAnalysis } = useAnalyzerStore();
   if (!realAnalysis) return null;
 
-  const score = realAnalysis.atsScore;
+  const score = realAnalysis.jobMatchScore ?? realAnalysis.atsScore;
   const verdict = score >= 80 ? "Excellent Match" : score >= 60 ? "Good Match" : "Needs Improvement";
   const verdictDesc = realAnalysis.aiSummary || "Deterministic match against the job description you provided.";
 

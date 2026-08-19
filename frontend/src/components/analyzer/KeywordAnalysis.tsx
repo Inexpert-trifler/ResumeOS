@@ -8,9 +8,9 @@ export function AnalyzerKeywordAnalysis() {
   const { analysis: realAnalysis } = useAnalyzerStore();
   if (!realAnalysis) return null;
 
-  const matchedKeywords = realAnalysis.matchedKeywords.map((k) => k.keyword);
-  const missingKeywords = realAnalysis.missingKeywords.map((k) => k.keyword);
-  const matchedSkills = realAnalysis.matchedSkills;
+  const matchedKeywords = (realAnalysis.matchedKeywords || []).map((k) => k.keyword);
+  const missingKeywords = (realAnalysis.missingKeywords || []).map((k) => k.keyword);
+  const matchedSkills = realAnalysis.matchedTechnicalSkills || realAnalysis.matchedSkills || [];
 
   return (
     <section className="mb-12">

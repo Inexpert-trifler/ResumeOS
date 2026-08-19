@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { INITIAL_STATE } from "@/types";
 import { builderToResume, createBuilderDraft, hydrateBuilderState, readResumeDraft, saveResumeDraft } from "@/lib/resume-draft";
-import { useResumeAnalysis } from "@/lib/resume-analysis";
+import { useAnalyzerStore } from "@/stores/useAnalyzerStore";
+import { type ImprovementRoadmapItem } from "@/services/AnalysisService";
 import {
   applyAiImprovementToBuilder,
   buildAiRequestFromRoadmapItem,
@@ -32,8 +33,11 @@ const AI_SUPPORTED_CATEGORIES = new Set([
 
 export function AnalyzerImprovementRoadmap() {
   const router = useRouter();
-  const analysis = useResumeAnalysis();
+  const { analysis } = useAnalyzerStore();
   const [aiStates, setAiStates] = useState<Record<string, RecommendationAiState>>({});
+
+  if (!analysis) return null;
+  const roadmap = analysis.improvementRoadmap;
 
   const handleFix = (route: { pathname: "/builder" | "/studio"; step?: number; hash?: string }) => {
     if (route.pathname === "/builder") {
@@ -46,7 +50,7 @@ export function AnalyzerImprovementRoadmap() {
     router.push(route.pathname + (route.hash ? `#${route.hash}` : ""));
   };
 
-  const handleRequestAi = async (item: (typeof analysis.recommendations)[number]) => {
+  const handleRequestAi = async (item: ImprovementRoadmapItem) => {
     if (!AI_SUPPORTED_CATEGORIES.has(item.category)) {
       return;
     }
@@ -54,7 +58,25 @@ export function AnalyzerImprovementRoadmap() {
     const existing = readResumeDraft();
     const builder = existing?.builder ? hydrateBuilderState(existing.builder) : INITIAL_STATE;
     const resume = existing?.resume ?? builderToResume(builder);
-    const aiTarget = buildAiRequestFromRoadmapItem(item, builder, resume, analysis);
+    
+    // Adapt item to RoadmapItem format expected by AI helper
+    const roadmapItemAdapter = {
+      id: item.id,
+      category: item.category as any,
+      severity: item.severity,
+      title: item.title,
+      description: item.description,
+      whyItMatters: item.whyItMatters,
+      howToFix: item.howToFix,
+      targetSection: item.targetSection,
+      estimatedImpact: item.estimatedImpact,
+      estimatedScoreGain: item.estimatedScoreGain,
+      route: item.route,
+    };
+
+    const aiTarget = buildAiRequestFromRoadmapItem(roadmapItemAdapter, builder, resume, {
+      weakBullets: analysis.resumeHealth.weakBullets,
+    } as any);
 
     if (!aiTarget) {
       handleFix(item.route);
@@ -94,11 +116,27 @@ export function AnalyzerImprovementRoadmap() {
 
     const existing = readResumeDraft();
     const builder = existing?.builder ? hydrateBuilderState(existing.builder) : INITIAL_STATE;
-    const recommendation = analysis.recommendations.find((item) => item.id === itemId);
+    const recommendation = roadmap.items.find((item) => item.id === itemId);
     if (!recommendation) return;
 
     const resume = existing?.resume ?? builderToResume(builder);
-    const target = buildAiRequestFromRoadmapItem(recommendation, builder, resume, analysis);
+    const roadmapItemAdapter = {
+      id: recommendation.id,
+      category: recommendation.category as any,
+      severity: recommendation.severity,
+      title: recommendation.title,
+      description: recommendation.description,
+      whyItMatters: recommendation.whyItMatters,
+      howToFix: recommendation.howToFix,
+      targetSection: recommendation.targetSection,
+      estimatedImpact: recommendation.estimatedImpact,
+      estimatedScoreGain: recommendation.estimatedScoreGain,
+      route: recommendation.route,
+    };
+
+    const target = buildAiRequestFromRoadmapItem(roadmapItemAdapter, builder, resume, {
+      weakBullets: analysis.resumeHealth.weakBullets,
+    } as any);
     if (!target || !state.response.improvedText) return;
 
     const updatedBuilder = applyAiImprovementToBuilder(builder, target.target, state.response.improvedText);
@@ -124,17 +162,17 @@ export function AnalyzerImprovementRoadmap() {
         <div className="text-sm text-muted-foreground flex items-center gap-2">
           <TrendingUp className="w-4 h-4 text-accent" />
           <span>
-            Current <strong className="text-foreground">{analysis.currentScore}/100</strong>
+            Current <strong className="text-foreground">{roadmap.currentScore}/100</strong>
             {" · "}
-            Potential <strong className="text-foreground">{analysis.potentialScore}/100</strong>
+            Potential <strong className="text-foreground">{roadmap.potentialScore}/100</strong>
             {" "}
-            <span className="text-accent">(+{analysis.estimatedImprovement})</span>
+            <span className="text-accent">(+{roadmap.estimatedImprovement})</span>
           </span>
         </div>
       </div>
       
       <div className="space-y-4">
-        {analysis.recommendations.map((item, i) => (
+        {roadmap.items.map((item, i) => (
           (() => {
             const aiState = aiStates[item.id];
             const canAccept = aiState?.status === "ready" && Boolean(aiState.response.improvedText);

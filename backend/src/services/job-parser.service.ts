@@ -36,13 +36,13 @@ const PROGRAMMING_LANGUAGES = new Set([
 ]);
 
 const FRAMEWORKS = new Set([
-  "react", "angular", "vue", "svelte", "next.js", "nextjs", "nuxt", "gatsby", "remix",
-  "express", "fastapi", "django", "flask", "spring", "spring boot", "hibernate", "laravel",
+  "react", "react.js", "reactjs", "angular", "vue", "vue.js", "vuejs", "svelte", "next.js", "nextjs", "nuxt", "gatsby", "remix",
+  "express", "express.js", "expressjs", "fastapi", "django", "flask", "spring", "spring boot", "springboot", "hibernate", "laravel",
   "rails", "ruby on rails", "asp.net", ".net", "node.js", "nodejs", "nest.js", "nestjs",
-  "fastify", "gin", "echo", "fiber", "phoenix", "rails", "sinatra", "rocket",
+  "fastify", "gin", "echo", "fiber", "phoenix", "sinatra", "rocket",
   "tensorflow", "pytorch", "keras", "scikit-learn", "pandas", "numpy", "matplotlib",
   "redux", "zustand", "mobx", "rxjs", "graphql", "apollo", "trpc", "prisma", "drizzle",
-  "tailwind", "bootstrap", "material-ui", "mui", "chakra", "antd", "shadcn",
+  "tailwind", "tailwindcss", "tailwind css", "bootstrap", "material-ui", "mui", "chakra", "antd", "shadcn",
   "jest", "vitest", "cypress", "playwright", "selenium", "puppeteer",
   "webpack", "vite", "rollup", "esbuild", "babel",
   "hadoop", "spark", "kafka", "airflow", "celery", "rabbitmq",

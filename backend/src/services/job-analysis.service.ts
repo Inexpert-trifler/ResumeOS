@@ -6,6 +6,7 @@
 
 import { JobParserService, type ParsedJobData } from "./job-parser.service";
 import { extractNormalizedTerms, normalizeTerm } from "./term-normalizer";
+import { normalizeResumeData } from "./resume-normalizer.service";
 
 export interface ResumeData {
   header?: {
@@ -65,12 +66,14 @@ export interface ResumeData {
   leadership?: Array<{
     role?: string;
     organization?: string;
+    duration?: string;
     bullets?: string[];
   }>;
   languages?: Array<{
     language?: string;
     proficiency?: string;
   }>;
+  interests?: string[];
 }
 
 export interface JobInsights {
@@ -104,12 +107,39 @@ export interface MatchedKeywordItem {
   resumeSections: string[];
 }
 
+export interface ImprovementRoadmapItem {
+  id: string;
+  title: string;
+  severity: "Critical" | "High" | "Medium" | "Low";
+  category: string;
+  description: string;
+  whyItMatters: string;
+  howToFix: string;
+  targetSection: string;
+  estimatedImpact: string;
+  estimatedScoreGain: number;
+  route: {
+    pathname: "/builder" | "/studio";
+    step?: number;
+    hash?: string;
+  };
+}
+
+export interface ImprovementRoadmapBundle {
+  currentScore: number;
+  potentialScore: number;
+  estimatedImprovement: number;
+  items: ImprovementRoadmapItem[];
+}
+
 export interface AtsMatchReport {
+  jobMatchScore: number;
   overallScore: number;
   atsScore: number;
   breakdown: ScoreBreakdown;
   matchedSkills: string[];
   missingSkills: string[];
+  matchedTechnicalSkills: string[];
   matchedKeywords: MatchedKeywordItem[];
   missingKeywords: MissingKeywordItem[];
   recommendations: string[];
@@ -117,6 +147,7 @@ export interface AtsMatchReport {
   weaknesses: string[];
   jobTitleMatch: boolean;
   seniorityMatch: boolean;
+  improvementRoadmap: ImprovementRoadmapBundle;
 }
 
 const parser = new JobParserService();
@@ -225,7 +256,9 @@ export class JobAnalysisService {
   /**
    * Compare a Resume to a Job Description deterministically.
    */
-  compareResumeToJob(resume: ResumeData, jobText: string, jobHint?: { jobTitle?: string; company?: string }): AtsMatchReport {
+  compareResumeToJob(rawResume: ResumeData | unknown, jobText: string, jobHint?: { jobTitle?: string; company?: string }): AtsMatchReport {
+    // 0. Ensure resume is canonically normalized
+    const resume = (normalizeResumeData(rawResume) ?? rawResume) as ResumeData;
     const parsedJob = parser.parse(jobText, jobHint);
 
     // 1. Extract & normalize resume content
@@ -239,13 +272,14 @@ export class JobAnalysisService {
     }
 
     // 2. Technical Skills Matching (35% weight)
-    const jobTechnicalTerms = parsedJob.technicalSkills.map((s) => normalizeTerm(s));
     const matchedSkillsSet = new Set<string>();
     const missingSkillsSet = new Set<string>();
 
     for (const techSkill of parsedJob.technicalSkills) {
       const norm = normalizeTerm(techSkill);
-      if (resumeNormalizedTerms.has(norm)) {
+      const directRegex = new RegExp(`(?:^|[^a-zA-Z0-9#+.])${techSkill.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?:$|[^a-zA-Z0-9#+.])`, "i");
+
+      if (resumeNormalizedTerms.has(norm) || directRegex.test(resumeText)) {
         matchedSkillsSet.add(techSkill);
       } else {
         missingSkillsSet.add(techSkill);
@@ -255,8 +289,8 @@ export class JobAnalysisService {
     const matchedSkills = Array.from(matchedSkillsSet);
     const missingSkills = Array.from(missingSkillsSet);
 
-    const skillsScore = jobTechnicalTerms.length > 0
-      ? Math.min(100, Math.round((matchedSkills.length / Math.max(1, jobTechnicalTerms.length)) * 100))
+    const skillsScore = parsedJob.technicalSkills.length > 0
+      ? Math.min(100, Math.round((matchedSkills.length / Math.max(1, parsedJob.technicalSkills.length)) * 100))
       : 80;
 
     // 3. Keywords & ATS Terms Matching (25% weight)
@@ -266,14 +300,15 @@ export class JobAnalysisService {
 
     for (const kw of parsedJob.keywords) {
       const normKw = normalizeTerm(kw);
-      const isMatched = resumeNormalizedTerms.has(normKw) || new RegExp(`\\b${kw.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "i").test(resumeText);
+      const kwRegex = new RegExp(`(?:^|[^a-zA-Z0-9#+.])${kw.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?:$|[^a-zA-Z0-9#+.])`, "i");
+      const isMatched = resumeNormalizedTerms.has(normKw) || kwRegex.test(resumeText);
 
       if (isMatched) {
         matchedKwCount++;
         const sections: string[] = [];
-        if (resume.summary && new RegExp(`\\b${normKw}\\b`, "i").test(resume.summary)) sections.push("summary");
-        if (resume.experience?.some((e) => e.bullets?.some((b) => new RegExp(`\\b${normKw}\\b`, "i").test(b)))) sections.push("experience");
-        if (resume.projects?.some((p) => p.bullets?.some((b) => new RegExp(`\\b${normKw}\\b`, "i").test(b)))) sections.push("projects");
+        if (resume.summary && (kwRegex.test(resume.summary) || new RegExp(`\\b${normKw}\\b`, "i").test(resume.summary))) sections.push("summary");
+        if (resume.experience?.some((e) => e.bullets?.some((b) => kwRegex.test(b) || new RegExp(`\\b${normKw}\\b`, "i").test(b)))) sections.push("experience");
+        if (resume.projects?.some((p) => (p.tech?.some((t) => normalizeTerm(t) === normKw) || p.bullets?.some((b) => kwRegex.test(b) || new RegExp(`\\b${normKw}\\b`, "i").test(b))))) sections.push("projects");
         if (resume.skills?.some((s) => s.skills?.some((sk) => normalizeTerm(sk) === normKw))) sections.push("skills");
 
         matchedKeywords.push({
@@ -344,6 +379,9 @@ export class JobAnalysisService {
     // 9. Generate Recommendations, Strengths, Weaknesses
     const { recommendations, strengths, weaknesses } = this.generateFeedback(resume, parsedJob, breakdown, missingSkills, missingKeywords);
 
+    // 10. Generate Deterministic Improvement Roadmap (Strictly matching atsScore)
+    const improvementRoadmap = this.generateImprovementRoadmap(resume, parsedJob, breakdown, atsScore, missingSkills, missingKeywords);
+
     // Title / Seniority check
     const resumeTitle = (resume.header?.title ?? "").toLowerCase();
     const targetTitle = parsedJob.jobTitle.toLowerCase();
@@ -351,11 +389,13 @@ export class JobAnalysisService {
     const seniorityMatch = experienceScore >= 70;
 
     return {
+      jobMatchScore: atsScore,
       overallScore: atsScore,
       atsScore,
       breakdown,
       matchedSkills,
       missingSkills,
+      matchedTechnicalSkills: matchedSkills,
       matchedKeywords,
       missingKeywords,
       recommendations,
@@ -363,6 +403,7 @@ export class JobAnalysisService {
       weaknesses,
       jobTitleMatch,
       seniorityMatch,
+      improvementRoadmap,
     };
   }
 
@@ -370,6 +411,8 @@ export class JobAnalysisService {
     const parts: string[] = [];
     if (resume.header?.name) parts.push(resume.header.name);
     if (resume.header?.title) parts.push(resume.header.title);
+    if (resume.header?.github) parts.push(resume.header.github);
+    if (resume.header?.portfolio) parts.push(resume.header.portfolio);
     if (resume.summary) parts.push(resume.summary);
 
     if (resume.experience) {
@@ -384,6 +427,8 @@ export class JobAnalysisService {
       for (const proj of resume.projects) {
         if (proj.name) parts.push(proj.name);
         if (proj.description) parts.push(proj.description);
+        if (proj.github) parts.push(proj.github);
+        if (proj.demo) parts.push(proj.demo);
         if (proj.tech) parts.push(...proj.tech);
         if (proj.bullets) parts.push(...proj.bullets);
       }
@@ -401,7 +446,40 @@ export class JobAnalysisService {
         if (edu.institution) parts.push(edu.institution);
         if (edu.degree) parts.push(edu.degree);
         if (edu.field) parts.push(edu.field);
+        if (edu.achievements) parts.push(...edu.achievements);
       }
+    }
+
+    if (resume.achievements) {
+      for (const ach of resume.achievements) {
+        if (ach.title) parts.push(ach.title);
+        if (ach.description) parts.push(ach.description);
+      }
+    }
+
+    if (resume.certificates) {
+      for (const cert of resume.certificates) {
+        if (cert.name) parts.push(cert.name);
+        if (cert.issuer) parts.push(cert.issuer);
+      }
+    }
+
+    if (resume.leadership) {
+      for (const lead of resume.leadership) {
+        if (lead.role) parts.push(lead.role);
+        if (lead.organization) parts.push(lead.organization);
+        if (lead.bullets) parts.push(...lead.bullets);
+      }
+    }
+
+    if (resume.languages) {
+      for (const lang of resume.languages) {
+        if (lang.language) parts.push(lang.language);
+      }
+    }
+
+    if (resume.interests) {
+      parts.push(...resume.interests);
     }
 
     return parts.join(" ");
@@ -469,7 +547,7 @@ export class JobAnalysisService {
   private computeEducationAlignment(resume: ResumeData, job: ParsedJobData): number {
     const eduCount = resume.education?.length ?? 0;
     if (eduCount === 0 && job.educationRequirements.length > 0) return 40;
-    if (eduCount > 0) return 90;
+    if (eduCount > 0) return 95;
     return 80;
   }
 
@@ -524,5 +602,133 @@ export class JobAnalysisService {
     }
 
     return { recommendations, strengths, weaknesses };
+  }
+
+  private generateImprovementRoadmap(
+    resume: ResumeData,
+    job: ParsedJobData,
+    breakdown: ScoreBreakdown,
+    currentScore: number,
+    missingSkills: string[],
+    missingKeywords: MissingKeywordItem[]
+  ): ImprovementRoadmapBundle {
+    const items: ImprovementRoadmapItem[] = [];
+
+    // 1. Missing Technical Skills
+    if (missingSkills.length > 0) {
+      const topMissing = missingSkills.slice(0, 3).join(", ");
+      items.push({
+        id: "roadmap-missing-skills",
+        title: "Add missing required technical skills",
+        severity: breakdown.skills < 70 ? "Critical" : "High",
+        category: "Skills",
+        description: `Target job requires ${topMissing}, which were not detected on your resume.`,
+        whyItMatters: "Technical skills are the primary filter for ATS parsers and technical hiring managers.",
+        howToFix: `If you have truthful experience with ${topMissing}, add them to your Skills or Project descriptions.`,
+        targetSection: "Builder — Skills Step",
+        estimatedImpact: "+6 Score",
+        estimatedScoreGain: 6,
+        route: { pathname: "/builder", step: 6 },
+      });
+    }
+
+    // 2. High-priority ATS Keywords
+    const highKeywords = missingKeywords.filter((k) => k.importance === "high").slice(0, 3).map((k) => k.keyword);
+    if (highKeywords.length > 0) {
+      items.push({
+        id: "roadmap-missing-keywords",
+        title: "Incorporate high-priority ATS keywords",
+        severity: "High",
+        category: "ATS",
+        description: `Keywords such as ${highKeywords.join(", ")} frequently appear in target role requirements.`,
+        whyItMatters: "Keyword density in relevant sections directly impacts resume ranking in applicant tracking systems.",
+        howToFix: "Integrate these terms naturally into your professional summary and experience bullet points.",
+        targetSection: "Builder — Summary & Experience Steps",
+        estimatedImpact: "+5 Score",
+        estimatedScoreGain: 5,
+        route: { pathname: "/builder", step: 5 },
+      });
+    }
+
+    // 3. Summary Quality
+    if (!resume.summary || resume.summary.trim().length < 40) {
+      items.push({
+        id: "roadmap-summary",
+        title: "Strengthen your Professional Summary",
+        severity: !resume.summary?.trim() ? "High" : "Medium",
+        category: "Resume Structure",
+        description: !resume.summary?.trim()
+          ? "Your resume is missing a professional summary to anchor your qualifications."
+          : "Your summary is very short and lacks target role alignment.",
+        whyItMatters: "The professional summary is the first section recruiters read to gauge fit for the role.",
+        howToFix: `Add a 2-3 sentence summary tailored for ${job.jobTitle} highlighting key achievements.`,
+        targetSection: "Builder — Summary Step",
+        estimatedImpact: "+4 Score",
+        estimatedScoreGain: 4,
+        route: { pathname: "/builder", step: 5 },
+      });
+    }
+
+    // 4. Action Verbs / Responsibilities
+    if (breakdown.responsibilities < 75) {
+      items.push({
+        id: "roadmap-action-verbs",
+        title: "Quantify experience with power action verbs",
+        severity: "Medium",
+        category: "Experience",
+        description: "Some experience bullets start with passive wording or lack quantified metrics.",
+        whyItMatters: "Hiring managers look for verifiable business outcomes and strong leadership verbs.",
+        howToFix: "Rewrite bullets starting with verbs like 'Architected', 'Optimized', or 'Delivered' and include % or $ metrics.",
+        targetSection: "Builder — Work Experience Step",
+        estimatedImpact: "+5 Score",
+        estimatedScoreGain: 5,
+        route: { pathname: "/builder", step: 8 },
+      });
+    }
+
+    // 5. Projects proof of work
+    if (!resume.projects || resume.projects.length === 0) {
+      items.push({
+        id: "roadmap-projects",
+        title: "Add technical project demonstrations",
+        severity: "Medium",
+        category: "Projects",
+        description: "Adding portfolio projects provides concrete proof of hands-on technical skills.",
+        whyItMatters: "Projects validate technical competency and demonstrate initiative.",
+        howToFix: "Add 1-2 featured projects with live demo or GitHub links.",
+        targetSection: "Builder — Projects Step",
+        estimatedImpact: "+4 Score",
+        estimatedScoreGain: 4,
+        route: { pathname: "/builder", step: 7 },
+      });
+    }
+
+    // Fallback if resume is already highly aligned
+    if (items.length === 0) {
+      items.push({
+        id: "roadmap-refinement",
+        title: "Fine-tune quantifiable impact metrics",
+        severity: "Low",
+        category: "Experience",
+        description: "Your resume has high alignment with the target job! Consider adding additional measurable metrics.",
+        whyItMatters: "Top 5% candidate resumes consistently feature quantifiable business outcomes across all roles.",
+        howToFix: "Add scale numbers (users, requests/sec, latency reduction) to your most recent position.",
+        targetSection: "Builder — Work Experience Step",
+        estimatedImpact: "+2 Score",
+        estimatedScoreGain: 2,
+        route: { pathname: "/builder", step: 8 },
+      });
+    }
+
+    const totalGains = items.reduce((sum, item) => sum + item.estimatedScoreGain, 0);
+    const potentialScore = Math.min(100, currentScore + totalGains);
+    const estimatedImprovement = potentialScore - currentScore;
+
+    return {
+      currentScore,
+      potentialScore,
+      estimatedImprovement,
+      items,
+    };
   }
 }

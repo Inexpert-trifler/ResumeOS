@@ -5,6 +5,7 @@ import { resumes, jobDescriptions, resumeAnalysis, resumeJobLinks } from "../db/
 import { eq, and } from "drizzle-orm";
 import { JobAnalysisService, type ResumeData } from "../services/job-analysis.service";
 import { ResumeHealthService } from "../services/resume-health.service";
+import { normalizeResumeData } from "../services/resume-normalizer.service";
 import { AIService } from "../services/ai.service";
 
 const analysisService = new JobAnalysisService();
@@ -13,43 +14,54 @@ const resumeHealthService = new ResumeHealthService();
 export async function analyzeResume(req: AuthenticatedRequest, res: Response): Promise<void> {
   try {
     const userId = req.currentUser!.id;
-    const { resumeId, jobId, jobDescription, targetRole } = req.body;
+    const { resumeId, jobId, jobDescription, targetRole, resume: clientResume } = req.body;
 
-    let targetResume: Record<string, unknown> | null = null;
+    let targetResume: ResumeData | null = null;
     let targetResumeId = resumeId;
 
-    // 1. Fetch resume (by resumeId or user's latest active resume)
-    if (resumeId) {
-      const [found] = await db
-        .select()
-        .from(resumes)
-        .where(and(eq(resumes.id, resumeId), eq(resumes.userId, userId)))
-        .limit(1);
+    // 1. If client sent active resume directly, normalize it
+    if (clientResume && typeof clientResume === "object") {
+      targetResume = normalizeResumeData(clientResume);
+    }
 
-      if (!found) {
-        res.status(404).json({ success: false, error: "Resume not found or unauthorized." });
-        return;
-      }
-      targetResume = found.resumeJson as Record<string, unknown>;
-    } else {
-      const [latest] = await db
-        .select()
-        .from(resumes)
-        .where(eq(resumes.userId, userId))
-        .limit(1);
+    // 2. If no client resume provided, fetch from DB by resumeId or latest user resume
+    if (!targetResume) {
+      if (resumeId) {
+        const [found] = await db
+          .select()
+          .from(resumes)
+          .where(and(eq(resumes.id, resumeId), eq(resumes.userId, userId)))
+          .limit(1);
 
-      if (latest) {
-        targetResume = latest.resumeJson as Record<string, unknown>;
-        targetResumeId = latest.id;
+        if (!found) {
+          res.status(404).json({ success: false, error: "Resume not found or unauthorized." });
+          return;
+        }
+        targetResume = normalizeResumeData(found.resumeJson);
+      } else {
+        const [latest] = await db
+          .select()
+          .from(resumes)
+          .where(eq(resumes.userId, userId))
+          .limit(1);
+
+        if (latest) {
+          targetResume = normalizeResumeData(latest.resumeJson);
+          targetResumeId = latest.id;
+        }
       }
     }
 
+    // 3. Validate active resume exists
     if (!targetResume) {
-      res.status(400).json({ success: false, error: "No active resume found to analyze. Please create or save a resume first." });
+      res.status(400).json({
+        success: false,
+        error: "Active resume could not be loaded. ATS analysis cannot be performed.",
+      });
       return;
     }
 
-    // 2. Fetch or parse Job Description
+    // 4. Fetch or parse Job Description
     let jobText = jobDescription || "";
     let jobTitle = targetRole || "";
     let company = "";
@@ -69,16 +81,18 @@ export async function analyzeResume(req: AuthenticatedRequest, res: Response): P
     }
 
     if (!jobText || !jobText.trim()) {
-      res.status(400).json({ success: false, error: "A job description is required for ATS job-match analysis." });
+      res.status(400).json({
+        success: false,
+        error: "A job description is required for ATS job-match analysis.",
+      });
       return;
     }
 
-    // One canonical, deterministic report. Job Match and Resume ATS Health are
-    // distinct scores so UI consumers cannot present one as the other.
-    const report = analysisService.compareResumeToJob(targetResume as ResumeData, jobText, { jobTitle, company });
-    const resumeHealth = resumeHealthService.analyze(targetResume as ResumeData);
+    // 5. One canonical, deterministic analysis report
+    const report = analysisService.compareResumeToJob(targetResume, jobText, { jobTitle, company });
+    const resumeHealth = resumeHealthService.analyze(targetResume);
 
-    // 4. Optionally generate AI summary explanation
+    // 6. Optional AI explanation
     let aiExplanation = { summary: "", actionableAdvice: report.recommendations };
     try {
       aiExplanation = await AIService.generateAtsExplanation({
@@ -92,7 +106,7 @@ export async function analyzeResume(req: AuthenticatedRequest, res: Response): P
       // Fallback if AI call fails
     }
 
-    // 5. Persist analysis to PostgreSQL if resumeId exists
+    // 7. Persist analysis to PostgreSQL if resumeId exists
     let savedAnalysisId: string | null = null;
     if (targetResumeId) {
       try {
@@ -123,11 +137,20 @@ export async function analyzeResume(req: AuthenticatedRequest, res: Response): P
     res.json({
       success: true,
       analysisId: savedAnalysisId,
+      jobMatchScore: report.jobMatchScore,
       overallScore: report.overallScore,
       atsScore: report.atsScore,
+      resumeATSHealth: resumeHealth.score,
+      contentQuality: resumeHealth.contentScore,
+      actionVerbScore: resumeHealth.actionVerbsScore,
+      resumeStructure: resumeHealth.structureScore,
+      contactCompleteness: resumeHealth.contactScore,
+      sectionCoverage: resumeHealth.structureScore,
+      contentCoverage: resumeHealth.contentScore,
       breakdown: report.breakdown,
       matchedSkills: report.matchedSkills,
       missingSkills: report.missingSkills,
+      matchedTechnicalSkills: report.matchedTechnicalSkills,
       matchedKeywords: report.matchedKeywords,
       missingKeywords: report.missingKeywords,
       recommendations: aiExplanation.actionableAdvice.length > 0 ? aiExplanation.actionableAdvice : report.recommendations,
@@ -136,6 +159,8 @@ export async function analyzeResume(req: AuthenticatedRequest, res: Response): P
       jobTitleMatch: report.jobTitleMatch,
       seniorityMatch: report.seniorityMatch,
       aiSummary: aiExplanation.summary,
+      improvementRoadmap: report.improvementRoadmap,
+      atsSimulation: resumeHealth.atsSimulation,
       resumeHealth,
     });
   } catch (error) {

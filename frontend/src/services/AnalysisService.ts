@@ -20,23 +20,35 @@ export interface MatchedKeywordItem {
   resumeSections: string[];
 }
 
-export interface AtsAnalysisResponse {
-  success: boolean;
-  analysisId?: string | null;
-  overallScore: number;
-  atsScore: number;
-  breakdown: ScoreBreakdown;
-  matchedSkills: string[];
-  missingSkills: string[];
-  matchedKeywords: MatchedKeywordItem[];
-  missingKeywords: MissingKeywordItem[];
-  recommendations: string[];
-  strengths: string[];
-  weaknesses: string[];
-  jobTitleMatch: boolean;
-  seniorityMatch: boolean;
-  aiSummary?: string;
-  resumeHealth: ResumeHealthReport;
+export interface ImprovementRoadmapItem {
+  id: string;
+  title: string;
+  severity: "Critical" | "High" | "Medium" | "Low";
+  category: string;
+  description: string;
+  whyItMatters: string;
+  howToFix: string;
+  targetSection: string;
+  estimatedImpact: string;
+  estimatedScoreGain: number;
+  route: {
+    pathname: "/builder" | "/studio";
+    step?: number;
+    hash?: string;
+  };
+}
+
+export interface ImprovementRoadmapBundle {
+  currentScore: number;
+  potentialScore: number;
+  estimatedImprovement: number;
+  items: ImprovementRoadmapItem[];
+}
+
+export interface AtsSimulationItem {
+  id: string;
+  state: "pass" | "warn";
+  message: string;
 }
 
 export interface ResumeHealthReport {
@@ -49,7 +61,37 @@ export interface ResumeHealthReport {
   formattingMetrics: Array<{ name: string; score: number; status: string; icon: string }>;
   sectionAnalysis: Array<{ id: string; name: string; score: number; strengths: string[]; weaknesses: string[]; suggestions: string[] }>;
   weakBullets: Array<{ id: string; original: string; suggestion: string; score: number; section: string }>;
-  atsSimulation: Array<{ id: string; state: "pass" | "warn"; message: string }>;
+  atsSimulation: AtsSimulationItem[];
+}
+
+export interface AtsAnalysisResponse {
+  success: boolean;
+  analysisId?: string | null;
+  jobMatchScore: number;
+  overallScore: number;
+  atsScore: number;
+  resumeATSHealth: number;
+  contentQuality: number;
+  actionVerbScore: number;
+  resumeStructure: number;
+  contactCompleteness: number;
+  sectionCoverage: number;
+  contentCoverage: number;
+  breakdown: ScoreBreakdown;
+  matchedSkills: string[];
+  missingSkills: string[];
+  matchedTechnicalSkills: string[];
+  matchedKeywords: MatchedKeywordItem[];
+  missingKeywords: MissingKeywordItem[];
+  recommendations: string[];
+  strengths: string[];
+  weaknesses: string[];
+  jobTitleMatch: boolean;
+  seniorityMatch: boolean;
+  aiSummary?: string;
+  improvementRoadmap: ImprovementRoadmapBundle;
+  atsSimulation: AtsSimulationItem[];
+  resumeHealth: ResumeHealthReport;
 }
 
 export class AnalysisService {
@@ -88,6 +130,7 @@ export class AnalysisService {
     jobId?: string;
     jobDescription?: string;
     targetRole?: string;
+    resume?: unknown;
   }): Promise<AtsAnalysisResponse> {
     return this.request<AtsAnalysisResponse>("/analysis", {
       method: "POST",

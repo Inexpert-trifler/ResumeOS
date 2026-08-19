@@ -8,6 +8,9 @@ export function AnalyzerATSSimulation() {
   const { analysis } = useAnalyzerStore();
   if (!analysis) return null;
 
+  const simulationItems = analysis.atsSimulation || analysis.resumeHealth?.atsSimulation || [];
+  const healthScore = analysis.resumeATSHealth ?? analysis.resumeHealth?.score ?? 0;
+
   return (
     <section className="mb-12">
       <h2 className="text-2xl font-bold mb-6">ATS Simulation</h2>
@@ -49,12 +52,12 @@ export function AnalyzerATSSimulation() {
               <h3 className="text-lg font-semibold">Parsing Results</h3>
             </div>
             <p className="text-muted-foreground text-sm">
-              Resume ATS Health: {analysis.resumeHealth.score}/100. This structural score is separate from the Job Match Score above.
+              Resume ATS Health: {healthScore}/100. This structural score is separate from the Job Match Score above.
             </p>
           </div>
 
           <div className="space-y-3">
-            {analysis.resumeHealth.atsSimulation.map((item) => {
+            {simulationItems.map((item) => {
               const isPass = item.state === "pass";
               return (
                 <div

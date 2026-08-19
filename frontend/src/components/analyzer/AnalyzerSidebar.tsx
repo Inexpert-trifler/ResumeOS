@@ -6,8 +6,8 @@ import { useAnalyzerStore } from "@/stores/useAnalyzerStore";
 export function AnalyzerSidebar() {
   const { analysis } = useAnalyzerStore();
   if (!analysis) return null;
-  const jobMatch = analysis.atsScore;
-  const health = analysis.resumeHealth;
+  const jobMatch = analysis.jobMatchScore ?? analysis.atsScore ?? 0;
+  const healthScore = analysis.resumeATSHealth ?? analysis.resumeHealth?.score ?? 0;
 
   return (
     <aside className="w-80 shrink-0 border-l border-border/50 bg-background/50 h-full overflow-y-auto no-scrollbar p-6">
@@ -22,7 +22,7 @@ export function AnalyzerSidebar() {
               <h4 className="font-semibold">{jobMatch >= 80 ? "Excellent Match" : jobMatch >= 60 ? "Good Match" : "Needs Improvement"}</h4>
             </div>
             <p className="text-sm text-muted-foreground leading-relaxed mb-4">
-              Job Match Score: {jobMatch}/100. Resume ATS Health: {health.score}/100.
+              Job Match Score: {jobMatch}/100. Resume ATS Health: {healthScore}/100.
             </p>
             <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
               <div className="h-full bg-accent rounded-full" style={{ width: `${jobMatch}%` }} />
@@ -39,7 +39,7 @@ export function AnalyzerSidebar() {
               <h4 className="font-semibold text-foreground">Job Match Tip</h4>
             </div>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              {analysis.recommendations[0] ?? "No additional recommendation was generated."}
+              {analysis.recommendations?.[0] ?? "No additional recommendation was generated."}
             </p>
           </div>
         </div>
@@ -53,7 +53,7 @@ export function AnalyzerSidebar() {
               <h4 className="font-semibold text-foreground">Keyword Coverage</h4>
             </div>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Matched {analysis.matchedKeywords.length} of {analysis.matchedKeywords.length + analysis.missingKeywords.length} job-description keywords.
+              Matched {analysis.matchedKeywords?.length ?? 0} of {(analysis.matchedKeywords?.length ?? 0) + (analysis.missingKeywords?.length ?? 0)} job-description keywords.
             </p>
           </div>
         </div>

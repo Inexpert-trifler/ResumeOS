@@ -29,9 +29,112 @@ export interface ResumeHealthReport {
   atsSimulation: Array<{ id: string; state: "pass" | "warn"; message: string }>;
 }
 
-const ACTION_VERB = /^(built|created|developed|designed|implemented|led|managed|optimized|improved|analyzed|delivered|collaborated|launched|automated|resolved|supported|tested|maintained|architected|spearheaded|engineered|shipped|orchestrated|authored|mentored|reduced|increased)\b/i;
-const WEAK_OPENING = /^(worked on|helped|responsible for|assisted|contributed to)\b/i;
-const METRIC = /\b\d+(?:\.\d+)?\s*(?:%|x|ms|seconds?|minutes?|hours?|users?|customers?|projects?|requests?|k|m|tps|\$|stars?)\b/i;
+export const ACTION_VERB = /^(built|created|developed|designed|implemented|led|managed|optimized|improved|analyzed|delivered|collaborated|launched|automated|resolved|supported|tested|maintained|architected|spearheaded|engineered|shipped|orchestrated|authored|mentored|reduced|increased|established|scaled|refactored|overhauled|directed|coordinated|integrated|trained|guided|drove|championed|published|secured)\b/i;
+export const WEAK_OPENING = /^(worked on|helped with|helped to|helped|responsible for|assisted with|assisted in|assisted|contributed to|participated in|tasked with|involved in)\b/i;
+
+/**
+ * Checks if a bullet contains concrete numbers, percentages, scale, durations, or currency.
+ */
+export function hasMetric(text: string): boolean {
+  // 1. Percentage: e.g. 25%, 40.5%
+  if (/\b\d+(?:\.\d+)?\s*%/i.test(text)) return true;
+
+  // 2. Currency: e.g. $4.2M, $120K/year, 500 dollars
+  if (/\$\s*[\d,.]+[kmb]?\b/i.test(text) || /\b\d+(?:\.\d+)?\s*(?:million|billion|thousand|k|m|b)\s*(?:dollars|usd|eur|annually|revenue)?\b/i.test(text)) return true;
+
+  // 3. Counts / Scale: e.g. 50+ engineers, 4 junior engineers, 2M+ users, 300+ teams, 100K+ TPS, 5,000 monthly users
+  if (/\b\d+(?:,\d{3})*(?:\.\d+)?[kmb]?\+?\s*(?:junior|senior|staff|lead)?\s*(?:engineers?|developers?|members?|people|users?|customers?|clients?|teams?|projects?|requests?|endpoints?|services?|stars?|prs?|tps|qps|nodes?|containers?|tables?|tests?)\b/i.test(text)) return true;
+
+  // 4. Time / Durations / Reductions: e.g. 45 minutes to 8 minutes, 3 months, 6+ years
+  if (/\b\d+\+?\s*(?:seconds?|minutes?|hours?|days?|weeks?|months?|years?)\b/i.test(text)) return true;
+
+  // 5. Multipliers & standalone numbers with scale: e.g. 3x faster, 100K+, 2M+
+  if (/\b\d+(?:\.\d+)?x\b/i.test(text) || /\b\d+(?:,\d{3})*\+?\b/.test(text) && /\b\d{2,}\+?\b/.test(text)) return true;
+
+  return false;
+}
+
+/**
+ * Clean up repetitive phrases, stuttered openings, and duplicated words.
+ */
+export function sanitizeAndDeduplicate(text: string): string {
+  let cleaned = text.trim();
+
+  // Remove template prefix accidentally prepended before an existing action verb
+  cleaned = cleaned.replace(/^(?:Designed and built(?:\s+responsive)?|Optimized(?:\s+system performance)?|Architected and deployed(?:\s+scalable)?|Spearheaded)\s+((?:Designed|Built|Implemented|Architected|Led|Optimized|Developed|Created|Engineered|Shipped|Mentored)\b)/i, "$1");
+
+  // Remove duplicate opening phrases (e.g. "Designed and implemented Designed and implemented")
+  cleaned = cleaned.replace(/^([A-Z][a-zA-Z\s]{4,30}?)\s+\1/i, "$1");
+
+  // Remove repeated consecutive identical words
+  cleaned = cleaned.replace(/\b(\w+)\s+\1\b/gi, "$1");
+
+  // Remove common hallucinated trailing templates
+  cleaned = cleaned.replace(/,\s*(?:improving user engagement by \d+%).*$/i, ".");
+  cleaned = cleaned.replace(/,\s*(?:delivering measurable performance and business impact).*$/i, ".");
+
+  return cleaned.trim();
+}
+
+/**
+ * Factually grounded deterministic bullet rewriter.
+ * NEVER invents percentages, revenue, users, or metrics.
+ * Replaces weak openings with powerful verbs while preserving original facts.
+ */
+export function buildImprovedBullet(original: string): string {
+  const trimmed = original.trim();
+  let cleaned = sanitizeAndDeduplicate(trimmed);
+
+  // If starts with weak opening, cleanly replace with a strong action verb
+  if (WEAK_OPENING.test(cleaned)) {
+    const match = cleaned.match(WEAK_OPENING);
+    const prefix = match ? match[0] : "";
+    const remainder = cleaned.slice(prefix.length).trim();
+
+    // Contextual replacement of opening phrase
+    const lowerRemainder = remainder.toLowerCase();
+
+    if (/^(building|to build|build)\b/i.test(remainder)) {
+      cleaned = "Built " + remainder.replace(/^(building|to build|build)\s+/i, "");
+    } else if (/^(improving|to improve|improve|optimizing|to optimize|optimize)\b/i.test(remainder)) {
+      cleaned = "Optimized " + remainder.replace(/^(improving|to improve|improve|optimizing|to optimize|optimize)\s+/i, "");
+    } else if (/^(developing|to develop|develop|creating|to create|create)\b/i.test(remainder)) {
+      cleaned = "Developed " + remainder.replace(/^(developing|to develop|develop|creating|to create|create)\s+/i, "");
+    } else if (/^(designing|to design|design)\b/i.test(remainder)) {
+      cleaned = "Designed " + remainder.replace(/^(designing|to design|design)\s+/i, "");
+    } else if (/^(implementing|to implement|implement)\b/i.test(remainder)) {
+      cleaned = "Implemented " + remainder.replace(/^(implementing|to implement|implement)\s+/i, "");
+    } else if (/^(leading|to lead|lead|managing|to manage|manage)\b/i.test(remainder)) {
+      cleaned = "Led " + remainder.replace(/^(leading|to lead|lead|managing|to manage|manage)\s+/i, "");
+    } else if (/^(maintaining|to maintain|maintain|testing|to test|test)\b/i.test(remainder)) {
+      cleaned = "Maintained and tested " + remainder.replace(/^(maintaining|to maintain|maintain|testing|to test|test)\s+/i, "");
+    } else if (/^(automating|to automate|automate)\b/i.test(remainder)) {
+      cleaned = "Automated " + remainder.replace(/^(automating|to automate|automate)\s+/i, "");
+    } else {
+      // General replacement
+      const firstWord = remainder.split(/\s+/)[0] || "";
+      if (/ing$/i.test(firstWord)) {
+        // e.g. "writing" -> "Wrote", "scaling" -> "Scaled"
+        const converted = firstWord.charAt(0).toUpperCase() + firstWord.slice(1);
+        cleaned = converted + " " + remainder.slice(firstWord.length).trim();
+      } else {
+        cleaned = "Engineered " + remainder;
+      }
+    }
+  }
+
+  // Ensure starts capitalized
+  if (cleaned.length > 0) {
+    cleaned = cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
+  }
+
+  // Ensure ends with period
+  if (cleaned.length > 0 && !/[.!?]$/.test(cleaned)) {
+    cleaned += ".";
+  }
+
+  return sanitizeAndDeduplicate(cleaned);
+}
 
 const clamp = (value: number) => Math.max(0, Math.min(100, Math.round(value)));
 const status = (score: number) => score >= 85 ? "Excellent" : score >= 65 ? "Good" : "Needs work";
@@ -54,27 +157,6 @@ function bulletsFor(resume: ResumeData) {
     }
   }
   return bullets;
-}
-
-function buildImprovedBullet(original: string): string {
-  const trimmed = original.trim();
-  const cleaned = trimmed.replace(WEAK_OPENING, "").trim();
-  const lower = original.toLowerCase();
-
-  if (lower.includes("performance") || lower.includes("latency") || lower.includes("speed")) {
-    return `Optimized ${cleaned || "system performance"}, reducing latency by 35% and improving responsiveness.`;
-  }
-  if (lower.includes("api") || lower.includes("backend") || lower.includes("service")) {
-    return `Architected and deployed scalable ${cleaned || "APIs"}, handling high request volume with 99.9% reliability.`;
-  }
-  if (lower.includes("dashboard") || lower.includes("ui") || lower.includes("frontend") || lower.includes("react")) {
-    return `Designed and built responsive ${cleaned || "user interface"}, improving user engagement by 25%.`;
-  }
-  if (cleaned) {
-    const capitalized = cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
-    return `Spearheaded ${capitalized}, delivering measurable performance and business impact.`;
-  }
-  return "Rewrite with a strong action verb (e.g., Architected, Optimized, Shipped), a quantifiable metric (% or $), and the outcome.";
 }
 
 export class ResumeHealthService {
@@ -107,7 +189,15 @@ export class ResumeHealthService {
 
     // 3. Bullets & action verbs checks
     const strongBullets = bullets.filter(({ text }) => ACTION_VERB.test(text)).length;
-    const rawWeakBullets = bullets.filter(({ text }) => WEAK_OPENING.test(text) || text.split(/\s+/).length < 6 || !METRIC.test(text));
+
+    // Accurate weak bullet filtering: Only mark weak if uses weak opening, is very short, or lacks both action verb and metric
+    const rawWeakBullets = bullets.filter(({ text }) => {
+      const isWeakOpening = WEAK_OPENING.test(text);
+      const isVeryShort = text.split(/\s+/).length < 6;
+      const lacksVerbAndMetric = !ACTION_VERB.test(text) && !hasMetric(text);
+      return isWeakOpening || isVeryShort || lacksVerbAndMetric;
+    });
+
     const actionVerbsScore = bullets.length ? clamp((strongBullets / bullets.length) * 100) : (hasExperience || hasProjects ? 50 : 0);
 
     // 4. Content score
@@ -134,7 +224,7 @@ export class ResumeHealthService {
       score: summaryScore,
       strengths: hasSummary ? ["Concise, informative narrative setting role direction."] : [],
       weaknesses: hasSummary ? (summaryWordCount < 15 ? ["Summary is very brief; consider expanding on key strengths."] : []) : ["Professional summary is missing from your resume."],
-      suggestions: hasSummary ? ["Reinforce 1-2 quantifiable career achievements aligned to target roles."] : ["Add a 2-3 sentence summary highlighting your core expertise and achievements."],
+      suggestions: hasSummary ? ["Consider adding verified career highlights aligned to target roles."] : ["Add a 2-3 sentence summary highlighting your core expertise and achievements."],
     });
 
     // Experience
@@ -145,8 +235,8 @@ export class ResumeHealthService {
       name: "Work Experience",
       score: experienceScore,
       strengths: hasExperience ? [`${resume.experience?.length} role(s) listed with structured bullet points.`] : [],
-      weaknesses: hasExperience ? (rawWeakBullets.length > 0 ? ["Some bullets could use stronger action verbs or measurable impact."] : []) : ["Work experience section is missing."],
-      suggestions: hasExperience ? ["Start every bullet with a power action verb and add measurable metrics (% or $)."] : ["Add your work experience entries with bullet points."],
+      weaknesses: hasExperience ? (rawWeakBullets.length > 0 ? ["Some bullets could use stronger action verbs."] : []) : ["Work experience section is missing."],
+      suggestions: hasExperience ? ["Start bullets with direct action verbs and include metrics where available."] : ["Add your work experience entries with bullet points."],
     });
 
     // Skills
@@ -157,7 +247,7 @@ export class ResumeHealthService {
       score: skillsScore,
       strengths: hasSkills ? [`${skillCount} skill(s) categorized for ATS scanning.`] : [],
       weaknesses: hasSkills ? (skillCount < 6 ? ["Consider broadening your technical skills list."] : []) : ["Skills section is missing."],
-      suggestions: hasSkills ? ["Ensure top keywords from your target job description are included."] : ["Add your technical skills and frameworks."],
+      suggestions: hasSkills ? ["Ensure top technical skills from your target job description are included."] : ["Add your technical skills and frameworks."],
     });
 
     // Education
@@ -208,12 +298,12 @@ export class ResumeHealthService {
       });
     }
 
-    // 7. Weak bullets suggestions
+    // 7. Weak bullets suggestions (strictly factually grounded)
     const weakBullets = rawWeakBullets.slice(0, 4).map(({ text, section: sectionName }, index) => ({
       id: `${sectionName.replace(/\s+/g, "-")}-${index}`,
       original: text,
       section: sectionName,
-      score: clamp((ACTION_VERB.test(text) ? 60 : 35) + (METRIC.test(text) ? 30 : 0) + (text.split(/\s+/).length >= 8 ? 10 : 0)),
+      score: clamp((ACTION_VERB.test(text) ? 60 : 35) + (hasMetric(text) ? 30 : 0) + (text.split(/\s+/).length >= 8 ? 10 : 0)),
       suggestion: buildImprovedBullet(text),
     }));
 

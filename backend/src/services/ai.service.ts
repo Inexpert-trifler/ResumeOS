@@ -357,21 +357,33 @@ Return ONLY valid JSON matching the specified schema.`;
     ], 0.2);
 
     const parsed = extractJson<Record<string, unknown>>(rawResponse);
-    const improvedText = typeof parsed?.improvedText === "string" && parsed.improvedText.trim()
+    const rawImproved = typeof parsed?.improvedText === "string" && parsed.improvedText.trim()
       ? parsed.improvedText.trim()
       : "";
 
-    if (!parsed || !improvedText) {
+    if (!parsed || !rawImproved) {
       console.warn("[AI] Groq returned an invalid structured improvement", {
         section: params.section,
         hasParsedJson: Boolean(parsed),
-        hasImprovedText: Boolean(improvedText),
+        hasImprovedText: Boolean(rawImproved),
         rawResponseLength: rawResponse.length,
       });
       throw new AIProviderError(
         "AI_UNEXPECTED_RESPONSE",
         "Groq returned a response that could not be safely applied. Please try again."
       );
+    }
+
+    // Post-generation validation & deduplication
+    let improvedText = rawImproved
+      .replace(/^([A-Z][a-zA-Z\s]{4,30}?)\s+\1/i, "$1")
+      .replace(/\b(\w+)\s+\1\b/gi, "$1")
+      .trim();
+
+    // If original content did not have percentages but AI hallucinated one, strip trailing fabricated metric
+    if (!params.content.includes("%") && improvedText.includes("%")) {
+      improvedText = improvedText.replace(/,\s*(?:improving|increasing|reducing|boosting|growing|accelerating)\s+[^.]+?\s+by\s+\d+(?:\.\d+)?%\s*\.?/gi, ".");
+      if (improvedText.endsWith(".")) improvedText = improvedText.slice(0, -1).trim() + ".";
     }
 
     const explanation = typeof parsed?.explanation === "string" && parsed.explanation.trim()
@@ -394,6 +406,9 @@ Return ONLY valid JSON matching the specified schema.`;
     });
 
     const warnings = Array.isArray(parsed?.warnings) ? parsed.warnings.map(String) : [];
+    if (!params.content.match(/\d+/) && warnings.length === 0) {
+      warnings.push("Consider adding a verified metric (% or $) if available.");
+    }
     const needsMoreInfo = Boolean(parsed?.needsMoreInfo);
     const followUpQuestions = Array.isArray(parsed?.followUpQuestions)
       ? parsed.followUpQuestions.map(String).filter(Boolean)

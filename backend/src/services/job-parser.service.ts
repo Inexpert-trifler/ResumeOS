@@ -257,22 +257,36 @@ export class JobParserService {
       if (eduMatches) educationRequirements.push(...eduMatches.slice(0, 5));
     }
 
-    // ATS Keywords — frequency-weighted important terms
+    // ATS Keywords — frequency-weighted important terms (strictly excluding generic filler)
     const wordFreq: Record<string, number> = {};
     const words = lower.match(/\b[a-z][a-z+#.]{2,}\b/g) ?? [];
-    const STOPWORDS = new Set(["and", "the", "with", "for", "our", "you", "will", "have", "this", "that", "are", "your", "from", "not", "but", "all", "can", "such", "has", "they", "their", "been", "who", "its", "what", "how", "must", "also", "into"]);
+    const STOPWORDS = new Set([
+      "and", "the", "with", "for", "our", "you", "will", "have", "this", "that", "are", "your", "from",
+      "not", "but", "all", "can", "such", "has", "they", "their", "been", "who", "its", "what", "how",
+      "must", "also", "into", "about", "more", "other", "some", "than", "then", "them", "these", "were",
+      // Generic resume / job filler words (MUST NOT be classified as ATS keywords)
+      "strong", "experience", "applications", "application", "working", "knowledge", "skills", "skill",
+      "ability", "abilities", "proficient", "proficiency", "role", "roles", "team", "teams", "years", "year",
+      "building", "build", "looking", "responsibilities", "qualifications", "qualification", "preferred",
+      "required", "requirements", "requirement", "including", "familiarity", "understanding", "plus",
+      "well", "good", "great", "high", "fast", "paced", "environment", "relevant", "professional",
+      "hands", "demonstrated", "track", "record", "proven", "success", "work", "help", "create", "need",
+      "like", "join", "part", "opportunities", "candidate", "candidates", "duties", "overview", "looking",
+    ]);
+
     for (const w of words) {
-      if (!STOPWORDS.has(w) && w.length > 3) {
+      if (!STOPWORDS.has(w) && w.length > 2) {
         wordFreq[w] = (wordFreq[w] ?? 0) + 1;
       }
     }
+
     const atsKeywords = Object.entries(wordFreq)
-      .filter(([, freq]) => freq >= 2)
+      .filter(([word, freq]) => freq >= 2 || technicalSkills.includes(word))
       .sort(([, a], [, b]) => b - a)
       .slice(0, 30)
       .map(([word]) => word);
 
-    // All keywords (union of structured + ats)
+    // All keywords (union of technical skills + soft skills + relevant domain terms)
     const keywords = [...new Set([
       ...technicalSkills,
       ...softSkills,

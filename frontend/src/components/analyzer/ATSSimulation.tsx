@@ -1,11 +1,40 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { CheckCircle2, AlertCircle, ScanLine } from "lucide-react";
 import { useAnalyzerStore } from "@/stores/useAnalyzerStore";
+import { readResumeDraft } from "@/lib/resume-draft";
 
 export function AnalyzerATSSimulation() {
   const { analysis } = useAnalyzerStore();
+  const [draftData, setDraftData] = useState<{
+    name: string;
+    title: string;
+    email: string;
+    summary: string;
+    skills: string[];
+    role: string;
+    company: string;
+  } | null>(null);
+
+  useEffect(() => {
+    const draft = readResumeDraft();
+    if (draft?.resume) {
+      const r = draft.resume;
+      const allSkills = r.skills?.flatMap((s) => s.skills ?? []) ?? [];
+      setDraftData({
+        name: r.header?.name || draft.builder?.personalInfo?.firstName ? `${draft.builder?.personalInfo?.firstName || ""} ${draft.builder?.personalInfo?.lastName || ""}`.trim() : "Candidate Resume",
+        title: r.header?.title || draft.builder?.targetRole || "Software Engineer",
+        email: r.header?.email || draft.builder?.personalInfo?.email || "candidate@email.com",
+        summary: r.summary || draft.builder?.summary || "Professional summary highlighting engineering expertise and achievements.",
+        skills: allSkills.length > 0 ? allSkills.slice(0, 6) : (draft.builder?.skills || []).map((s: { name?: string } | string) => typeof s === "string" ? s : s.name || "").filter(Boolean).slice(0, 6),
+        role: r.experience?.[0]?.role || "Software Engineer",
+        company: r.experience?.[0]?.company || "Technology Company",
+      });
+    }
+  }, []);
+
   if (!analysis) return null;
 
   const simulationItems = analysis.atsSimulation || analysis.resumeHealth?.atsSimulation || [];
@@ -16,19 +45,43 @@ export function AnalyzerATSSimulation() {
       <h2 className="text-2xl font-bold mb-6">ATS Simulation</h2>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center bg-card p-8 rounded-3xl border border-border/50 overflow-hidden">
         
-        {/* Animated Scanner side */}
-        <div className="relative w-full aspect-[3/4] bg-muted/20 rounded-lg border border-border/50 overflow-hidden flex flex-col p-4">
-          {/* Mock Resume Lines */}
-          <div className="w-1/2 h-4 bg-muted/80 rounded mb-6 mx-auto" />
-          <div className="w-full h-2 bg-muted/60 rounded mb-2" />
-          <div className="w-full h-2 bg-muted/60 rounded mb-2" />
-          <div className="w-3/4 h-2 bg-muted/60 rounded mb-8" />
-          
-          <div className="w-1/3 h-3 bg-muted/80 rounded mb-4" />
-          <div className="w-full h-2 bg-muted/60 rounded mb-2" />
-          <div className="w-full h-2 bg-muted/60 rounded mb-2" />
-          <div className="w-full h-2 bg-muted/60 rounded mb-2" />
-          <div className="w-4/5 h-2 bg-muted/60 rounded mb-8" />
+        {/* Animated Scanner side rendering REAL active resume content */}
+        <div className="relative w-full aspect-[3/4] bg-muted/15 rounded-xl border border-border/60 overflow-hidden flex flex-col p-6 text-xs text-foreground/80 select-none">
+          {/* Active Resume Real Content */}
+          <div className="border-b border-border/40 pb-3 mb-3">
+            <h4 className="font-bold text-sm text-foreground tracking-tight">{draftData?.name || "Active Resume"}</h4>
+            <p className="text-accent font-medium text-[11px]">{draftData?.title || "Candidate Profile"}</p>
+            <p className="text-[10px] text-muted-foreground">{draftData?.email}</p>
+          </div>
+
+          <div className="space-y-3 flex-1 overflow-hidden">
+            <div>
+              <span className="font-semibold text-[10px] uppercase tracking-wider text-muted-foreground">Summary</span>
+              <p className="text-[10px] line-clamp-2 text-muted-foreground leading-relaxed mt-0.5">
+                {draftData?.summary}
+              </p>
+            </div>
+
+            <div>
+              <span className="font-semibold text-[10px] uppercase tracking-wider text-muted-foreground">Experience</span>
+              <p className="text-[11px] font-medium text-foreground mt-0.5">{draftData?.role} · {draftData?.company}</p>
+              <div className="w-full h-1.5 bg-muted/60 rounded-full mt-1" />
+              <div className="w-4/5 h-1.5 bg-muted/50 rounded-full mt-1" />
+            </div>
+
+            {draftData?.skills && draftData.skills.length > 0 && (
+              <div>
+                <span className="font-semibold text-[10px] uppercase tracking-wider text-muted-foreground">Parsed Skills</span>
+                <div className="flex flex-wrap gap-1 mt-1">
+                  {draftData.skills.map((skill) => (
+                    <span key={skill} className="px-1.5 py-0.5 bg-muted rounded text-[9px] font-medium border border-border/40">
+                      {skill}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
           
           {/* Scanner Line */}
           <motion.div

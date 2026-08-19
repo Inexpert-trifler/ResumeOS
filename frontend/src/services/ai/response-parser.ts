@@ -36,10 +36,26 @@ export function normalizeAiImprovementResponse(
   sectionType: AiImprovementSectionType
 ): AiImprovementResponse {
   const parsed = LooseAiResponseSchema.parse(payload);
+  const rawOriginal = parsed.originalText ?? "";
+  let improved = parsed.improvedText?.trim() ? parsed.improvedText.trim() : null;
+
+  if (improved) {
+    // Remove repeated opening phrases & consecutive duplicate words
+    improved = improved
+      .replace(/^([A-Z][a-zA-Z\s]{4,30}?)\s+\1/i, "$1")
+      .replace(/\b(\w+)\s+\1\b/gi, "$1")
+      .trim();
+
+    // If original text lacked % but improved text hallucinated one, clean it up
+    if (!rawOriginal.includes("%") && improved.includes("%")) {
+      improved = improved.replace(/,\s*(?:improving|increasing|reducing|boosting|growing|accelerating)\s+[^.]+?\s+by\s+\d+(?:\.\d+)?%\s*\.?/gi, ".");
+      if (improved.endsWith(".")) improved = improved.slice(0, -1).trim() + ".";
+    }
+  }
 
   return {
-    originalText: parsed.originalText ?? "",
-    improvedText: parsed.improvedText?.trim() ? parsed.improvedText.trim() : null,
+    originalText: rawOriginal,
+    improvedText: improved,
     explanation: parsed.explanation.trim(),
     confidence: normalizeConfidence(parsed.confidence),
     sectionType: parsed.sectionType ?? sectionType,

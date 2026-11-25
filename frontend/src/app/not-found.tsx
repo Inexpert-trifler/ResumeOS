@@ -59,7 +59,7 @@ export default function NotFound() {
 
         {/* Actions */}
         <div className="nf-actions flex flex-col sm:flex-row items-center justify-center gap-3">
-          <Link href="/" className="inline-flex items-center justify-center rounded-full px-8 h-12 gap-2 bg-accent text-white font-medium shadow-lg shadow-accent/10 hover:bg-accent/90 transition-colors">
+          <Link href="/" className="inline-flex items-center justify-center rounded-full px-8 h-12 gap-2 bg-accent text-white font-medium shadow-lg shadow-accent/10 hover:bg-accent/90 active:scale-95 transition-all">
             <Home className="w-4 h-4" />
             Go Home
           </Link>
